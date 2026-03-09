@@ -209,11 +209,6 @@ nav {
     color: #e0dcd4;
 }
 
-.section-dark h2 {
-    color: #fff;
-    border-bottom-color: var(--color-navy-light);
-}
-
 .section-dark h3 {
     color: var(--color-gold);
 }
@@ -231,6 +226,11 @@ nav {
     padding-bottom: 12px;
     border-bottom: 3px solid var(--color-gold);
     display: inline-block;
+}
+
+.section-dark h2 {
+    color: #e0dcd4;
+    border-bottom-color: var(--color-navy-light);
 }
 
 /* ---- ABOUT ---- */
