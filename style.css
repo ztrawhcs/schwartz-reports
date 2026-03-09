@@ -573,6 +573,32 @@ nav {
     text-decoration: underline;
 }
 
+.work-story-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.work-story-list li {
+    margin-bottom: 8px;
+    font-size: 0.875rem;
+}
+
+.work-story-list li::before {
+    content: "→ ";
+    color: var(--color-link);
+    font-weight: 600;
+}
+
+.work-story-list a {
+    color: var(--color-link);
+    text-decoration: none;
+}
+
+.work-story-list a:hover {
+    text-decoration: underline;
+}
+
 /* ---- AWARDS ---- */
 
 .awards-grid {
