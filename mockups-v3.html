@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockups V3 — schwartzreports.org</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #111; font-family: 'Inter', sans-serif; color: #fff; }
+
+.page-header {
+  text-align: center;
+  padding: 48px 24px 32px;
+  border-bottom: 1px solid #222;
+  margin-bottom: 0;
+}
+.page-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+.page-header p { color: #888; font-size: 0.9rem; }
+
+.divider {
+  background: #000;
+  border-top: 3px solid #333;
+  padding: 28px 24px;
+  text-align: center;
+}
+.divider h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.divider p { color: #888; font-size: 0.85rem; }
+
+/* ─── DEVICE FRAMES ─── */
+.device-row {
+  display: flex;
+  gap: 48px;
+  justify-content: center;
+  padding: 40px 32px 56px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  background: #111;
+}
+.device-wrap { text-align: center; }
+.device-label { font-size: 0.72rem; color: #666; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+
+.phone-frame {
+  width: 320px;
+  border: 6px solid #333;
+  border-radius: 32px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  display: inline-block;
+}
+.phone-notch { height: 28px; background: #000; display: flex; align-items: center; justify-content: center; }
+.phone-notch-pill { width: 80px; height: 16px; background: #111; border-radius: 8px; border: 1px solid #2a2a2a; }
+
+.desktop-frame {
+  width: 720px;
+  border: 6px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  display: inline-block;
+}
+.desktop-bar { height: 28px; background: #222; display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.d-r { background: #ff5f57; } .d-y { background: #febc2e; } .d-g { background: #28c840; }
+.desktop-url { flex: 1; height: 16px; background: #333; border-radius: 8px; margin-left: 8px; }
+
+/* Shared nav */
+.nav-dark { background: #0f1b2d; padding: 0 20px; height: 44px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #c49a2a; }
+.nav-dark-name { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 0.9rem; color: #c49a2a; }
+.nav-dark-links { display: flex; gap: 16px; color: #c8c2b8; font-size: 0.72rem; }
+.nav-light { background: #fff; padding: 0 20px; height: 44px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e5e1d8; }
+.nav-light-name { font-family: 'Source Serif 4', serif; font-weight: 700; font-size: 0.9rem; color: #0f1b2d; }
+.nav-light-links { display: flex; gap: 16px; color: #555; font-size: 0.72rem; }
+.hamburger { display: flex; flex-direction: column; gap: 3px; }
+.hamburger span { display: block; width: 18px; height: 2px; background: #c49a2a; }
+.hamburger-dark span { display: block; width: 18px; height: 2px; background: #333; margin-bottom: 3px; }
+
+
+/* ═══════════════════════════════════════════
+   OPTION E — THE PORTRAIT
+   Full headshot left panel, tall; rich navy right
+   No crop. Photo shows full face + shoulders.
+   ═══════════════════════════════════════════ */
+
+/* Desktop */
+.e-d-hero { display: grid; grid-template-columns: 280px 1fr; min-height: 360px; }
+.e-d-photo { overflow: hidden; }
+.e-d-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.e-d-body { background: #0f1b2d; padding: 40px 36px; display: flex; flex-direction: column; justify-content: center; }
+.e-d-eyebrow { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: #c49a2a; margin-bottom: 14px; }
+.e-d-name { font-family: 'Source Serif 4', serif; font-size: 2rem; font-weight: 700; line-height: 1.1; color: #fff; margin-bottom: 14px; }
+.e-d-desc { font-size: 0.78rem; line-height: 1.75; color: rgba(255,255,255,0.7); margin-bottom: 22px; }
+.e-d-desc strong { color: #fff; }
+.e-d-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.e-chip { background: rgba(196,154,42,0.15); border: 1px solid rgba(196,154,42,0.35); color: #c49a2a; font-size: 0.65rem; font-weight: 600; padding: 4px 10px; border-radius: 3px; letter-spacing: 0.04em; }
+.e-d-btns { display: flex; gap: 10px; }
+.e-d-btn1 { background: #c49a2a; color: #000; font-size: 0.75rem; font-weight: 700; padding: 10px 20px; border-radius: 4px; text-decoration: none; }
+.e-d-btn2 { border: 1.5px solid rgba(255,255,255,0.3); color: #fff; font-size: 0.75rem; font-weight: 600; padding: 10px 20px; border-radius: 4px; text-decoration: none; }
+
+/* Mobile */
+.e-m-hero { background: #0f1b2d; }
+.e-m-photo { width: 100%; height: 260px; overflow: hidden; }
+.e-m-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.e-m-body { padding: 20px 18px 26px; }
+.e-m-eyebrow { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #c49a2a; margin-bottom: 8px; }
+.e-m-name { font-family: 'Source Serif 4', serif; font-size: 1.6rem; font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.15; }
+.e-m-desc { font-size: 0.73rem; line-height: 1.7; color: rgba(255,255,255,0.7); margin-bottom: 14px; }
+.e-m-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.e-m-btns { display: flex; gap: 8px; }
+.e-m-btn1 { background: #c49a2a; color: #000; font-size: 0.7rem; font-weight: 700; padding: 10px 16px; border-radius: 4px; text-decoration: none; flex: 1; text-align: center; }
+.e-m-btn2 { border: 1.5px solid rgba(255,255,255,0.3); color: #fff; font-size: 0.7rem; font-weight: 600; padding: 10px 16px; border-radius: 4px; text-decoration: none; text-align: center; }
+
+
+/* ═══════════════════════════════════════════
+   OPTION F — THE BYLINE
+   Cream/editorial. Photo is natural 3:4 portrait
+   floated right. Feels like a magazine author page.
+   ═══════════════════════════════════════════ */
+
+.f-d-hero { background: #faf7f0; padding: 52px 48px 48px; display: grid; grid-template-columns: 1fr 220px; gap: 52px; align-items: start; border-top: 5px solid #0f1b2d; }
+.f-d-kicker { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #8b6914; margin-bottom: 16px; }
+.f-d-name { font-family: 'Source Serif 4', serif; font-size: 2.4rem; font-weight: 700; color: #0f1b2d; line-height: 1.05; margin-bottom: 8px; }
+.f-d-role { font-size: 0.8rem; color: #888; margin-bottom: 20px; border-left: 3px solid #c49a2a; padding-left: 10px; }
+.f-d-desc { font-size: 0.82rem; line-height: 1.8; color: #333; margin-bottom: 24px; }
+.f-d-desc strong { color: #0f1b2d; }
+.f-d-btns { display: flex; gap: 12px; align-items: center; }
+.f-d-btn1 { background: #0f1b2d; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 11px 22px; border-radius: 4px; text-decoration: none; }
+.f-d-btn2 { color: #8b6914; font-size: 0.75rem; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid #c49a2a; padding-bottom: 2px; }
+.f-d-photo { }
+.f-d-photo img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: center top; display: block; border-radius: 3px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.f-d-caption { font-size: 0.65rem; color: #aaa; text-align: center; margin-top: 8px; }
+
+.f-m-hero { background: #faf7f0; border-top: 4px solid #0f1b2d; padding: 24px 18px 28px; }
+.f-m-top { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 16px; }
+.f-m-photo img { width: 90px; aspect-ratio: 3/4; object-fit: cover; object-position: center top; display: block; border-radius: 3px; flex-shrink: 0; }
+.f-m-intro { flex: 1; }
+.f-m-kicker { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: #8b6914; margin-bottom: 6px; }
+.f-m-name { font-family: 'Source Serif 4', serif; font-size: 1.25rem; font-weight: 700; color: #0f1b2d; line-height: 1.15; margin-bottom: 6px; }
+.f-m-role { font-size: 0.65rem; color: #888; line-height: 1.4; }
+.f-m-desc { font-size: 0.75rem; line-height: 1.7; color: #333; margin-bottom: 16px; }
+.f-m-btns { display: flex; gap: 8px; }
+.f-m-btn1 { background: #0f1b2d; color: #fff; font-size: 0.7rem; font-weight: 600; padding: 10px 0; border-radius: 4px; text-decoration: none; flex: 1; text-align: center; }
+.f-m-btn2 { border: 1.5px solid #0f1b2d; color: #0f1b2d; font-size: 0.7rem; font-weight: 600; padding: 10px 0; border-radius: 4px; text-decoration: none; text-align: center; flex: 0 0 80px; }
+
+
+/* ═══════════════════════════════════════════
+   OPTION G — THE ANCHOR DESK
+   Dark. Photo fills left half at full height.
+   Subtle gradient bleeds into text panel.
+   Face is always fully visible.
+   ═══════════════════════════════════════════ */
+
+.g-d-hero { display: flex; min-height: 400px; overflow: hidden; background: #0a1220; }
+.g-d-photo { width: 300px; flex-shrink: 0; position: relative; }
+.g-d-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.g-d-photo-fade { position: absolute; top: 0; right: 0; bottom: 0; width: 80px; background: linear-gradient(to right, transparent, #0a1220); }
+.g-d-body { flex: 1; padding: 44px 36px 44px 20px; display: flex; flex-direction: column; justify-content: center; }
+.g-d-show-tag { display: inline-flex; align-items: center; gap: 8px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #c49a2a; margin-bottom: 18px; }
+.g-d-show-tag::before { content: ''; width: 24px; height: 2px; background: #c49a2a; display: block; }
+.g-d-name { font-family: 'Source Serif 4', serif; font-size: 2.1rem; font-weight: 700; color: #fff; line-height: 1.1; margin-bottom: 6px; }
+.g-d-title { font-size: 0.8rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+.g-d-desc { font-size: 0.78rem; line-height: 1.75; color: rgba(255,255,255,0.65); margin-bottom: 24px; max-width: 340px; }
+.g-d-desc strong { color: #fff; }
+.g-d-awards { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.g-award { font-size: 0.62rem; font-weight: 600; color: #c49a2a; background: rgba(196,154,42,0.1); border: 1px solid rgba(196,154,42,0.25); padding: 4px 10px; border-radius: 20px; }
+.g-d-btns { display: flex; gap: 10px; }
+.g-d-btn1 { background: #c49a2a; color: #000; font-size: 0.75rem; font-weight: 700; padding: 11px 22px; border-radius: 4px; text-decoration: none; }
+.g-d-btn2 { border: 1.5px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); font-size: 0.75rem; font-weight: 600; padding: 11px 22px; border-radius: 4px; text-decoration: none; }
+
+.g-m-hero { background: #0a1220; }
+.g-m-photo { position: relative; height: 240px; overflow: hidden; }
+.g-m-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.g-m-photo-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to top, #0a1220, transparent); }
+.g-m-body { padding: 12px 18px 26px; }
+.g-m-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #c49a2a; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.g-m-tag::before { content: ''; width: 18px; height: 2px; background: #c49a2a; display: block; }
+.g-m-name { font-family: 'Source Serif 4', serif; font-size: 1.55rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.g-m-title { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.g-m-desc { font-size: 0.72rem; line-height: 1.7; color: rgba(255,255,255,0.65); margin-bottom: 14px; }
+.g-m-awards { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.g-m-btns { display: flex; gap: 8px; }
+.g-m-btn1 { background: #c49a2a; color: #000; font-size: 0.7rem; font-weight: 700; padding: 10px 0; border-radius: 4px; text-decoration: none; flex: 1; text-align: center; }
+.g-m-btn2 { border: 1.5px solid rgba(255,255,255,0.2); color: #fff; font-size: 0.7rem; font-weight: 600; padding: 10px 14px; border-radius: 4px; text-decoration: none; text-align: center; }
+
+
+/* ═══════════════════════════════════════════
+   OPTION H — THE FEATURE
+   Oversized serif headline with photo inset.
+   Warm off-white. Big editorial energy.
+   Photo is natural 2:3 — full face guaranteed.
+   ═══════════════════════════════════════════ */
+
+.h-d-hero { background: #f7f4ed; padding: 0; overflow: hidden; border-top: 6px solid #0f1b2d; }
+.h-d-inner { max-width: 100%; display: grid; grid-template-columns: 1fr 200px; align-items: stretch; }
+.h-d-left { padding: 44px 40px 44px 44px; display: flex; flex-direction: column; justify-content: center; }
+.h-d-label { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: #999; margin-bottom: 18px; }
+.h-d-headline { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; line-height: 1.12; color: #111; margin-bottom: 18px; }
+.h-d-headline em { font-style: italic; color: #8b6914; }
+.h-d-byline { display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: #666; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #ddd; }
+.h-d-byline strong { color: #111; font-weight: 700; }
+.h-d-desc { font-size: 0.78rem; line-height: 1.8; color: #444; margin-bottom: 22px; }
+.h-d-btns { display: flex; gap: 12px; align-items: center; }
+.h-d-btn1 { background: #0f1b2d; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 11px 22px; border-radius: 3px; text-decoration: none; }
+.h-d-btn2 { color: #8b6914; font-size: 0.75rem; font-weight: 600; text-decoration: none; border-bottom: 1.5px solid #c49a2a; padding-bottom: 2px; }
+.h-d-right { overflow: hidden; }
+.h-d-right img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; min-height: 360px; }
+
+.h-m-hero { background: #f7f4ed; border-top: 4px solid #0f1b2d; }
+.h-m-photo { height: 260px; overflow: hidden; }
+.h-m-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+.h-m-body { padding: 20px 18px 28px; }
+.h-m-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #aaa; margin-bottom: 10px; }
+.h-m-headline { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: #111; margin-bottom: 12px; }
+.h-m-headline em { font-style: italic; color: #8b6914; }
+.h-m-byline { font-size: 0.65rem; color: #888; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #ddd; }
+.h-m-byline strong { color: #333; }
+.h-m-desc { font-size: 0.73rem; line-height: 1.7; color: #444; margin-bottom: 16px; }
+.h-m-btn1 { display: block; background: #0f1b2d; color: #fff; font-size: 0.72rem; font-weight: 600; padding: 11px 20px; border-radius: 3px; text-decoration: none; text-align: center; }
+
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Mockups V3 — Full Face Options</h1>
+  <p>Four new directions. All designed around the headshot — no circular crops, no cutting off your face.</p>
+</div>
+
+<!-- ══════ OPTION E — THE PORTRAIT ══════ -->
+<div class="divider">
+  <h2>Option E — "The Portrait"</h2>
+  <p>Photo fills the full left panel at natural proportions. Navy body. Awards as gold chips. Clean.</p>
+</div>
+<div class="device-row">
+  <div class="device-wrap">
+    <div class="device-label">Mobile</div>
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="e-m-hero">
+        <div class="nav-dark" style="border-radius:0;">
+          <span class="nav-dark-name" style="font-size:0.8rem;">Schwartz Reports</span>
+          <div class="hamburger"><span></span><span></span><span></span></div>
+        </div>
+        <div class="e-m-photo"><img src="./headshot.jpg" alt="Matthew Schwartz"></div>
+        <div class="e-m-body">
+          <p class="e-m-eyebrow">Journalist · Attorney · Podcast Host</p>
+          <h1 class="e-m-name">Matthew S. Schwartz</h1>
+          <p class="e-m-desc">Host of <strong>UnCommon Law</strong>, Bloomberg Law's narrative podcast. Stories about the law and the people caught up in it.</p>
+          <div class="e-m-chips">
+            <span class="e-chip">ABA Silver Gavel</span>
+            <span class="e-chip">Murrow Award</span>
+            <span class="e-chip">2× AP Award</span>
+          </div>
+          <div class="e-m-btns">
+            <a href="#" class="e-m-btn1">▶ Listen Now</a>
+            <a href="#" class="e-m-btn2">About</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="device-wrap">
+    <div class="device-label">Desktop</div>
+    <div class="desktop-frame">
+      <div class="desktop-bar"><div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div><div class="desktop-url"></div></div>
+      <div class="nav-dark"><span class="nav-dark-name">Schwartz Reports</span><div class="nav-dark-links"><span>About</span><span>UnCommon Law</span><span>More Work</span><span>Get in Touch</span></div></div>
+      <div class="e-d-hero">
+        <div class="e-d-photo"><img src="./headshot.jpg" alt="Matthew Schwartz"></div>
+        <div class="e-d-body">
+          <p class="e-d-eyebrow">Journalist · Attorney · Podcast Host</p>
+          <h1 class="e-d-name">Matthew S. Schwartz</h1>
+          <p class="e-d-desc">I tell stories about the law and the people caught up in it. Host and producer of <strong>UnCommon Law</strong>, Bloomberg Law's award-winning narrative podcast. Previously NPR, WAMU, and Slate.</p>
+          <div class="e-d-chips">
+            <span class="e-chip">ABA Silver Gavel</span>
+            <span class="e-chip">Edward R. Murrow</span>
+            <span class="e-chip">2× AP Award</span>
+          </div>
+          <div class="e-d-btns">
+            <a href="#" class="e-d-btn1">▶ Listen to the Podcast</a>
+            <a href="#" class="e-d-btn2">Get in Touch</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ OPTION F — THE BYLINE ══════ -->
+<div class="divider">
+  <h2>Option F — "The Byline"</h2>
+  <p>Warm cream background. Photo floated right at natural 3:4 portrait ratio. Feels like a magazine author page or Sunday paper profile.</p>
+</div>
+<div class="device-row">
+  <div class="device-wrap">
+    <div class="device-label">Mobile</div>
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="f-m-hero">
+        <div class="nav-light">
+          <span class="nav-light-name" style="font-size:0.8rem;">Schwartz Reports</span>
+          <div class="hamburger-dark"><span></span><span></span><span></span></div>
+        </div>
+        <div class="f-m-top">
+          <div class="f-m-photo"><img src="./headshot.jpg" alt="Matthew Schwartz"></div>
+          <div class="f-m-intro">
+            <p class="f-m-kicker">Journalist · Attorney</p>
+            <h1 class="f-m-name">Matthew S. Schwartz</h1>
+            <p class="f-m-role">Host, UnCommon Law<br>Bloomberg Law · Washington D.C.</p>
+          </div>
+        </div>
+        <div style="padding: 0 18px;">
+          <p class="f-m-desc">I host <strong>UnCommon Law</strong> for Bloomberg Law — narrative stories about the law and the people caught up in it. ABA Silver Gavel winner, eleven seasons.</p>
+          <div class="f-m-btns">
+            <a href="#" class="f-m-btn1">Listen Now</a>
+            <a href="#" class="f-m-btn2">About</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="device-wrap">
+    <div class="device-label">Desktop</div>
+    <div class="desktop-frame">
+      <div class="desktop-bar"><div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div><div class="desktop-url"></div></div>
+      <div class="nav-light"><span class="nav-light-name">Schwartz Reports</span><div class="nav-light-links"><span>About</span><span>UnCommon Law</span><span>More Work</span><span>Get in Touch</span></div></div>
+      <div class="f-d-hero">
+        <div>
+          <p class="f-d-kicker">Journalist · Attorney · Podcast Host</p>
+          <h1 class="f-d-name">Matthew S.<br>Schwartz</h1>
+          <p class="f-d-role">Host of UnCommon Law · Bloomberg Law · Washington, D.C.</p>
+          <p class="f-d-desc">I tell stories about the law and the people caught up in it. Host and producer of <strong>UnCommon Law</strong>, Bloomberg Law's ABA Silver Gavel Award-winning narrative podcast — eleven seasons. Previously at NPR, WAMU, and Slate. Georgetown J.D.</p>
+          <div class="f-d-btns">
+            <a href="#" class="f-d-btn1">Listen to the Podcast</a>
+            <a href="#" class="f-d-btn2">About Matt →</a>
+          </div>
+        </div>
+        <div class="f-d-photo">
+          <img src="./headshot.jpg" alt="Matthew Schwartz">
+          <p class="f-d-caption">Matthew S. Schwartz</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ OPTION G — THE ANCHOR DESK ══════ -->
+<div class="divider">
+  <h2>Option G — "The Anchor Desk"</h2>
+  <p>Dark. Photo fills left at full height with a fade into the body copy. Face always visible. Awards as subtle pills.</p>
+</div>
+<div class="device-row">
+  <div class="device-wrap">
+    <div class="device-label">Mobile</div>
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="g-m-hero">
+        <div class="nav-dark" style="border-radius:0;">
+          <span class="nav-dark-name" style="font-size:0.8rem;">Schwartz Reports</span>
+          <div class="hamburger"><span></span><span></span><span></span></div>
+        </div>
+        <div class="g-m-photo">
+          <img src="./headshot.jpg" alt="Matthew Schwartz">
+          <div class="g-m-photo-fade"></div>
+        </div>
+        <div class="g-m-body">
+          <p class="g-m-tag">Bloomberg Law</p>
+          <h1 class="g-m-name">Matthew S. Schwartz</h1>
+          <p class="g-m-title">Journalist · Attorney · Podcast Host</p>
+          <p class="g-m-desc">Host and producer of <strong style="color:#fff;">UnCommon Law</strong> — narrative stories about the law and the people caught up in it.</p>
+          <div class="g-m-awards">
+            <span class="g-award">ABA Silver Gavel</span>
+            <span class="g-award">Murrow Award</span>
+            <span class="g-award">2× AP Award</span>
+          </div>
+          <div class="g-m-btns">
+            <a href="#" class="g-m-btn1">▶ Listen Now</a>
+            <a href="#" class="g-m-btn2">About</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="device-wrap">
+    <div class="device-label">Desktop</div>
+    <div class="desktop-frame">
+      <div class="desktop-bar"><div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div><div class="desktop-url"></div></div>
+      <div class="nav-dark"><span class="nav-dark-name">Schwartz Reports</span><div class="nav-dark-links"><span>About</span><span>UnCommon Law</span><span>More Work</span><span>Get in Touch</span></div></div>
+      <div class="g-d-hero">
+        <div class="g-d-photo">
+          <img src="./headshot.jpg" alt="Matthew Schwartz">
+          <div class="g-d-photo-fade"></div>
+        </div>
+        <div class="g-d-body">
+          <p class="g-d-show-tag">Bloomberg Law</p>
+          <h1 class="g-d-name">Matthew S. Schwartz</h1>
+          <p class="g-d-title">Journalist · Attorney · Podcast Host</p>
+          <p class="g-d-desc">I tell stories about the law and the people caught up in it. Host and producer of <strong>UnCommon Law</strong>, Bloomberg Law's narrative podcast. Previously NPR, WAMU, and Slate.</p>
+          <div class="g-d-awards">
+            <span class="g-award">ABA Silver Gavel</span>
+            <span class="g-award">Edward R. Murrow</span>
+            <span class="g-award">2× AP Award</span>
+          </div>
+          <div class="g-d-btns">
+            <a href="#" class="g-d-btn1">▶ Listen to the Podcast</a>
+            <a href="#" class="g-d-btn2">Get in Touch</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ OPTION H — THE FEATURE ══════ -->
+<div class="divider">
+  <h2>Option H — "The Feature"</h2>
+  <p>Big Playfair Display serif headline. Photo fills right panel at natural height. Off-white/editorial. Feels like a NYT profile or New Yorker bio.</p>
+</div>
+<div class="device-row">
+  <div class="device-wrap">
+    <div class="device-label">Mobile</div>
+    <div class="phone-frame">
+      <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+      <div class="h-m-hero">
+        <div class="nav-light">
+          <span class="nav-light-name" style="font-size:0.8rem;">Schwartz Reports</span>
+          <div class="hamburger-dark"><span></span><span></span><span></span></div>
+        </div>
+        <div class="h-m-photo"><img src="./headshot.jpg" alt="Matthew Schwartz"></div>
+        <div class="h-m-body">
+          <p class="h-m-label">Journalist · Attorney · Podcast Host</p>
+          <h1 class="h-m-headline">Telling stories about the law — <em>and the people caught up in it.</em></h1>
+          <p class="h-m-byline"><strong>Matthew S. Schwartz</strong> · Bloomberg Law · Washington D.C.</p>
+          <p class="h-m-desc">Host and producer of <strong>UnCommon Law</strong>, Bloomberg Law's ABA Silver Gavel Award-winning narrative podcast. Eleven seasons. Previously NPR, WAMU, Slate.</p>
+          <a href="#" class="h-m-btn1">▶ Listen to the Podcast</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="device-wrap">
+    <div class="device-label">Desktop</div>
+    <div class="desktop-frame">
+      <div class="desktop-bar"><div class="dot d-r"></div><div class="dot d-y"></div><div class="dot d-g"></div><div class="desktop-url"></div></div>
+      <div class="nav-light"><span class="nav-light-name">Schwartz Reports</span><div class="nav-light-links"><span>About</span><span>UnCommon Law</span><span>More Work</span><span>Get in Touch</span></div></div>
+      <div class="h-d-hero">
+        <div class="h-d-inner">
+          <div class="h-d-left">
+            <p class="h-d-label">Journalist · Attorney · Podcast Host · Washington D.C.</p>
+            <h1 class="h-d-headline">Telling stories<br>about the law —<br><em>and the people<br>caught up in it.</em></h1>
+            <div class="h-d-byline">
+              <strong>Matthew S. Schwartz</strong>
+              <span>·</span>
+              <span>Bloomberg Law</span>
+              <span>·</span>
+              <span>ABA Silver Gavel ✦</span>
+            </div>
+            <p class="h-d-desc">Host and producer of <strong>UnCommon Law</strong>, Bloomberg Law's narrative audio program — eleven seasons, three major awards. Previously NPR newscast producer, WAMU contributor, and co-founder of Booksmart Studios. Georgetown J.D.</p>
+            <div class="h-d-btns">
+              <a href="#" class="h-d-btn1">▶ Listen to the Podcast</a>
+              <a href="#" class="h-d-btn2">About Matt →</a>
+            </div>
+          </div>
+          <div class="h-d-right"><img src="./headshot.jpg" alt="Matthew Schwartz"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding: 40px 24px 60px; color: #555; font-size: 0.85rem;">
+  All four options show your full face. Tell me which direction resonates — or what to mix.
+</div>
+
+</body>
+</html>
