@@ -641,6 +641,15 @@ nav {
     font-weight: 500;
 }
 
+.award-for a {
+    color: var(--color-gold-dim);
+    text-decoration: underline;
+}
+
+.award-for a:hover {
+    color: var(--color-gold);
+}
+
 /* ---- CONTACT ---- */
 
 .contact-intro {
