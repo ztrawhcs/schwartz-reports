@@ -312,11 +312,20 @@ nav {
 }
 
 .current-season {
+    display: block;
     background: rgba(196,154,42,0.1);
     border-left: 3px solid var(--color-gold);
     padding: 20px 24px;
     margin: 24px 0;
     border-radius: 0 6px 6px 0;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.current-season:hover {
+    background: rgba(196,154,42,0.18);
+    border-left-color: var(--color-gold);
 }
 
 .current-season h3 {
