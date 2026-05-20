@@ -512,15 +512,18 @@ nav {
     border-left: 3px solid var(--color-gold);
 }
 
-.case strong {
+.case a {
     display: block;
     font-family: var(--serif);
     font-size: 1rem;
+    font-weight: 700;
     margin-bottom: 4px;
     color: var(--color-navy);
+    text-decoration: none;
 }
 
 .case span {
+    display: block;
     font-size: 0.9rem;
     color: var(--color-text-muted);
     line-height: 1.6;
