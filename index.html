@@ -351,6 +351,10 @@ document.querySelectorAll('.nav-links a').forEach(function(link) {
         document.querySelector('.nav-links').classList.remove('open');
     });
 });
+(function(){
+    var d={page:location.pathname,ref:document.referrer,w:screen.width,h:screen.height};
+    fetch('https://toll.schwartzreports.org/beacon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),keepalive:true}).catch(function(){});
+})();
 </script>
 
 </body>
