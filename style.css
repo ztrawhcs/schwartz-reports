@@ -114,18 +114,38 @@ nav {
 /* Full-bleed studio photo, anchored to the right.
    Its left edge dissolves into the black background, which reads as the
    dark curtain continuing — giving the text block room without covering Matt. */
-.hero-photo {
+.hero-media {
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     width: 64%;
     height: 100%;
+    margin: 0;
+    z-index: 0;
+}
+
+.hero-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     object-position: 28% center;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 100%);
-    z-index: 0;
+}
+
+.hero-credit {
+    position: absolute;
+    right: 16px;
+    bottom: 14px;
+    font-size: 0.62rem;
+    font-style: italic;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.5);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    z-index: 3;
 }
 
 /* Soft vertical scrim so text stays legible over any stray highlights */
@@ -809,14 +829,21 @@ footer {
         background: #0a0a0a;
     }
 
-    .hero-photo {
+    .hero-media {
         position: relative;
         width: 100%;
         height: 56vh;
         max-height: 460px;
+    }
+
+    .hero-photo {
         object-position: 30% 22%;
         -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
                 mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+    }
+
+    .hero-credit {
+        bottom: 92px;
     }
 
     .hero::before { display: none; }
