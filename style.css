@@ -832,18 +832,29 @@ footer {
     .hero-media {
         position: relative;
         width: 100%;
-        height: 56vh;
-        max-height: 460px;
+        height: auto;
     }
 
     .hero-photo {
+        position: static;
+        display: block;
+        width: 100%;
+        height: 56vh;
+        max-height: 460px;
         object-position: 30% 22%;
-        -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-                mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%);
+                mask-image: linear-gradient(to bottom, #000 0%, #000 82%, transparent 100%);
     }
 
+    /* Credit sits in the black space below the photo, right-aligned */
     .hero-credit {
-        bottom: 92px;
+        position: static;
+        display: block;
+        right: auto;
+        bottom: auto;
+        text-align: right;
+        padding: 8px 24px 0;
+        text-shadow: none;
     }
 
     .hero::before { display: none; }
@@ -852,8 +863,8 @@ footer {
         flex-direction: column;
         text-align: left;
         gap: 24px;
-        padding: 0 24px;
-        margin-top: -32px;
+        padding: 12px 24px 0;
+        margin-top: 0;
     }
 
     .hero-text {
