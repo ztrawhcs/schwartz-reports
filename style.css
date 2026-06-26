@@ -101,20 +101,57 @@ nav {
 /* ---- HERO ---- */
 
 .hero {
-    padding: 100px 24px 72px;
-    background: linear-gradient(165deg, var(--color-navy) 0%, var(--color-navy-mid) 60%, var(--color-navy-light) 100%);
+    position: relative;
+    min-height: 88vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 120px 24px 80px;
+    background: #0a0a0a;
     color: #fff;
 }
 
+/* Full-bleed studio photo, anchored to the right.
+   Its left edge dissolves into the black background, which reads as the
+   dark curtain continuing — giving the text block room without covering Matt. */
+.hero-photo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 64%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 28% center;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 100%);
+            mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 100%);
+    z-index: 0;
+}
+
+/* Soft vertical scrim so text stays legible over any stray highlights */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #0a0a0a 0%, rgba(10,10,10,0.85) 30%, rgba(10,10,10,0.15) 52%, transparent 64%);
+    z-index: 1;
+}
+
 .hero-content {
+    position: relative;
+    z-index: 2;
     max-width: var(--max-width);
     margin: 0 auto;
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 56px;
 }
 
-.hero-text { flex: 1; }
+.hero-text {
+    flex: 0 1 560px;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.6);
+}
 
 .hero-kicker {
     font-size: 0.85rem;
@@ -180,18 +217,6 @@ nav {
     border-color: #fff;
 }
 
-.hero-image {
-    flex-shrink: 0;
-}
-
-.hero-image img {
-    width: 220px;
-    height: 290px;
-    object-fit: cover;
-    border-radius: 8px;
-    border: 3px solid rgba(196,154,42,0.4);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
 
 /* ---- SECTIONS ---- */
 
@@ -774,22 +799,35 @@ footer {
 
     .nav-links.open { display: flex; }
 
-    .hero { padding: 90px 24px 56px; }
+    .hero {
+        min-height: 92vh;
+        padding: 80px 24px 40px;
+        align-items: flex-end;
+    }
+
+    /* Full-width photo, anchored on Matt; text overlaid at the bottom */
+    .hero-photo {
+        width: 100%;
+        object-position: 30% top;
+        -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, rgba(10,10,10,0.55) 66%, transparent 100%);
+                mask-image: linear-gradient(to bottom, #000 0%, #000 40%, rgba(10,10,10,0.55) 66%, transparent 100%);
+    }
+
+    .hero::before {
+        background: linear-gradient(to bottom, transparent 0%, rgba(10,10,10,0.1) 45%, rgba(10,10,10,0.92) 78%, #0a0a0a 100%);
+    }
 
     .hero-content {
-        flex-direction: column-reverse;
-        text-align: center;
-        gap: 28px;
+        flex-direction: column;
+        text-align: left;
+        gap: 24px;
     }
+
+    .hero-text { flex: 1 1 auto; }
 
     .hero h1 { font-size: 2.2rem; }
     .hero-description { max-width: 100%; }
-    .hero-cta { justify-content: center; }
-
-    .hero-image img {
-        width: 160px;
-        height: 210px;
-    }
+    .hero-cta { justify-content: flex-start; }
 
     .about-layout {
         grid-template-columns: 1fr;
