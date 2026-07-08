@@ -262,6 +262,92 @@ nav {
     background: var(--color-cream);
 }
 
+/* ---- FEATURED INTERVIEW ---- */
+.section-featured {
+    background: var(--color-navy);
+    color: #e0dcd4;
+    border-bottom: 3px solid var(--color-gold);
+    padding: 56px 24px;
+}
+
+.featured-layout {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 44px;
+    align-items: center;
+}
+
+.featured-video,
+.featured-text {
+    min-width: 0;
+}
+
+.featured-text h2,
+.featured-text p {
+    overflow-wrap: break-word;
+}
+
+.video-embed {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(196, 154, 42, 0.35);
+}
+
+.video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.featured-badge {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-navy);
+    background: var(--color-gold);
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+}
+
+.section-featured .featured-text h2 {
+    font-family: var(--serif);
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #f2ede4;
+    margin: 0 0 14px;
+    padding: 0;
+    border: none;
+    display: block;
+}
+
+.featured-text p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--color-text-light);
+    margin: 0;
+}
+
+@media (max-width: 760px) {
+    .featured-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    .featured-text h2 {
+        font-size: 1.55rem;
+    }
+}
+
 .section h2 {
     font-family: var(--serif);
     font-size: 2rem;
