@@ -78,6 +78,11 @@
   }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .span2 { grid-column: 1 / -1; }
+  .range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .range input { width: 92px; flex: none; }
+  .rlab { font-size: 14px; color: var(--muted); }
+  .hint { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
   .field input, .field select {
@@ -159,45 +164,48 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">Single-plane · four-run method</div>
+    <div class="eyebrow">Four readings · no clip on every blade</div>
     <h1>Fan Balancer</h1>
-    <div class="sub">Measured by camera from the floor. Baseline plus three trial runs — not one per blade.</div>
+    <div class="sub">Measured by camera from the floor. One baseline plus three test weights — not one per blade.</div>
   </header>
 
   <div class="card" id="setup">
-    <h2>Fan</h2>
+    <h2>Your fan</h2>
     <div class="grid">
       <div class="field">
         <label for="blades">Blades</label>
         <input id="blades" type="number" inputmode="numeric" value="5" min="2" max="10">
       </div>
       <div class="field">
-        <label for="tipR">Center → tip (in)</label>
+        <label for="tipR">Center to blade tip (in)</label>
         <input id="tipR" type="number" inputmode="decimal" value="36" step="0.25">
       </div>
-      <div class="field">
-        <label for="minR">Nearest usable (in)</label>
-        <input id="minR" type="number" inputmode="decimal" value="8" step="0.5">
+      <div class="field span2">
+        <label>Where can you actually stick a weight?</label>
+        <div class="range">
+          <span class="rlab">no closer in than</span>
+          <input id="minR" type="number" inputmode="decimal" value="8" step="0.5">
+          <span class="rlab">and no further out than</span>
+          <input id="maxR" type="number" inputmode="decimal" value="34" step="0.5">
+          <span class="rlab">inches from the center</span>
+        </div>
+        <p class="hint">Closer in than the first number you would hit the light or the motor housing. Further out than the second and the blade gets too narrow to hold anything. Eyeball it — this only stops the tool from suggesting a spot that does not exist.</p>
       </div>
       <div class="field">
-        <label for="maxR">Furthest usable (in)</label>
-        <input id="maxR" type="number" inputmode="decimal" value="34" step="0.5">
-      </div>
-      <div class="field">
-        <label for="trialM">Trial weight (g)</label>
+        <label for="trialM">Test weight (grams)</label>
         <input id="trialM" type="number" inputmode="decimal" value="3" step="0.1">
       </div>
       <div class="field">
-        <label for="trialR">Trial at radius (in)</label>
+        <label for="trialR">You will stick it (in from center)</label>
         <input id="trialR" type="number" inputmode="decimal" value="24" step="0.5">
       </div>
     </div>
-    <p class="note">Measure radius from any <strong>repeatable</strong> datum — the edge of the light housing is fine. You do not need the true centre: the answer comes back at the same radius you put the trial weight, so a consistent offset cancels out.</p>
-    <p class="note">Use the <strong>same fan speed for every run</strong> — vibration grows with the square of speed, so mixing speeds corrupts the maths. Use the speed where the wobble bothers you. Prop the phone somewhere <strong>solid and leave it there for all four runs</strong> — a shelf, a stack of books, a tripod. Do not hold it, and do not move it between runs: the camera position is the reference the whole method depends on.</p>
+    <p class="note">Measure radius from any <strong>repeatable</strong> datum — the edge of the light housing is fine. You do not need the true center: the answer comes back at the same radius you put the trial weight, so a consistent offset cancels out.</p>
+    <p class="note">Use the <strong>same fan speed every time</strong> — vibration grows with the square of speed, so mixing speeds corrupts the maths. Use the speed where the wobble bothers you. Prop the phone somewhere <strong>solid and leave it there for all four readings</strong> — a shelf, a stack of books, a tripod. Do not hold it, and do not move it between readings: the camera position is the reference the whole method depends on.</p>
   </div>
 
   <div class="card">
-    <h2>Runs</h2>
+    <h2>Four readings</h2>
     <div class="runs" id="runList"></div>
     <div style="margin-top:14px">
       <button class="primary" id="goBtn">Measure baseline</button>
@@ -218,7 +226,7 @@
   </div>
 
   <div class="card hidden" id="result">
-    <h2>Correction</h2>
+    <h2>What to add</h2>
     <div id="answerBody"></div>
   </div>
 
@@ -267,11 +275,11 @@
   function bladeAngle(i) { return i * 360 / S.blades; }
 
   function stepLabel(k) {
-    if (k === 0) return { name: 'Baseline', hint: 'No weight on any blade' };
+    if (k === 0) return { name: 'Baseline', hint: 'Nothing stuck on any blade yet' };
     var b = S.trialBlades[k - 1];
     return {
-      name: 'Trial ' + k + ' — blade ' + (b + 1),
-      hint: S.trialM + ' g at ' + S.trialR + ' in from centre, blade ' + (b + 1) + ' only'
+      name: 'Test ' + k + ' — blade ' + (b + 1),
+      hint: 'Stick ' + S.trialM + ' g on blade ' + (b + 1) + ' only, ' + S.trialR + ' in out from the center'
     };
   }
 
@@ -290,7 +298,7 @@
       el.querySelector('.run-val').textContent = done ? S.readings[k].toFixed(2) : '—';
       runList.appendChild(el);
     }
-    goBtn.textContent = S.step === 0 ? 'Measure baseline' : (S.step < 4 ? 'Measure run ' + (S.step + 1) : 'Start over');
+    goBtn.textContent = S.step === 0 ? 'Start — measure baseline' : (S.step < 4 ? 'Next reading (' + (S.step + 1) + ' of 4)' : 'Start over');
     goBtn.disabled = false;
   }
 
@@ -461,7 +469,7 @@
     }
     if (!S.armed) {   // first tap only frames the shot; second tap records
       S.armed = true;
-      goBtn.textContent = 'Record ' + (S.step === 0 ? 'baseline' : 'run ' + (S.step + 1));
+      goBtn.textContent = 'Record ' + (S.step === 0 ? 'baseline' : 'reading ' + (S.step + 1));
       camHint.innerHTML = 'Tap a <strong>sharp horizontal edge</strong> on the fan, get the fan up to speed, then Record.';
       return;
     }
@@ -567,7 +575,7 @@
         '<div class="answer">' +
           '<div class="line1">Blade ' + (pt.blade + 1) + '</div>' +
           '<div class="line2 mono">' + pt.g.toFixed(2) + ' g</div>' +
-          '<div class="line3">at <span class="mono">' + pt.r.toFixed(2) + ' in</span> from centre' +
+          '<div class="line3">at <span class="mono">' + pt.r.toFixed(2) + ' in</span> from center' +
             ' &nbsp;·&nbsp; <span class="mono">' + (S.tipR - pt.r).toFixed(2) + ' in</span> from the tip</div>' +
         '</div></div>';
     });
@@ -575,11 +583,11 @@
     html += diagram(psi, parts);
 
     html += '<table style="margin-top:16px">' +
-      row('Baseline vibration', O0.toFixed(2)) +
+      row('Starting wobble', O0.toFixed(2)) +
       row('Heavy spot', alpha.toFixed(0) + '° (blade 1 = 0°)') +
-      row('Correction at', psi.toFixed(0) + '°') +
-      row('Total correction', moment.toFixed(1) + ' g·in') +
-      row('Trial effect', (E / O0 * 100).toFixed(0) + '% of baseline') +
+      row('Add weight at', psi.toFixed(0) + '°') +
+      row('Total to add', moment.toFixed(1) + ' g·in') +
+      row('Test weight moved it', (E / O0 * 100).toFixed(0) + '% of baseline') +
       '</table>';
 
     if (flagged) {
