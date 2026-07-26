@@ -235,7 +235,7 @@
       <button class="flip hidden" id="flipBtn">Flip camera</button>
     </div>
     <div id="live" class="hidden" style="margin-top:16px">
-      <div class="camwrap">
+      <div class="camwrap" id="camwrap">
         <video id="vid" playsinline muted autoplay></video>
         <canvas id="overlay"></canvas>
         <div class="tapme" id="tapme">Tap the middle of the light</div>
@@ -262,6 +262,12 @@
 </div>
 
 <script>
+window.addEventListener('error', function (e) {
+  var box = document.getElementById('setupWarn') || document.body;
+  box.innerHTML = '<p class="note warn"><strong>Something broke:</strong> ' +
+    (e && e.message ? e.message : 'unknown error') +
+    '<br><span style="opacity:.7">Tell Claude this message.</span></p>';
+});
 (function () {
   var S = {
     blades: 5, tipR: 36, minR: 8, maxR: 34, trialM: 3, trialR: 24,
@@ -369,7 +375,8 @@
   }
 
   // Tap anywhere on the video to put the circle there.
-  $('camwrap').addEventListener('click', function (ev) {
+  var camwrap = $('camwrap');
+  if (camwrap) camwrap.addEventListener('click', function (ev) {
     if (!stream) return;
     var r = vid.getBoundingClientRect();
     var scale = Math.max(r.width / work.width, r.height / work.height);
