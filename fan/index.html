@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="description" content="Balance a ceiling fan by camera: baseline plus three trial weights, solved for a reachable radius.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%8C%80%3C/text%3E%3C/svg%3E">
+<title>Fan Balancer — camera, four-run method</title>
+<style>
+  :root {
+    --ground: #0D1317;
+    --surface: #151F25;
+    --raised: #1D2A31;
+    --line: #2A3A43;
+    --ink: #E8F0F3;
+    --muted: #8FA3AD;
+    --amber: #FFA028;
+    --teal: #35D0C3;
+    --red: #FF5F52;
+    --shadow: rgba(0,0,0,.45);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground: #F2EEE7;
+      --surface: #FFFFFF;
+      --raised: #FBF8F3;
+      --line: #DED6C9;
+      --ink: #1A2226;
+      --muted: #6B7A82;
+      --amber: #C26A00;
+      --teal: #0E8C82;
+      --red: #C4362B;
+      --shadow: rgba(40,30,15,.10);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0D1317; --surface: #151F25; --raised: #1D2A31; --line: #2A3A43;
+    --ink: #E8F0F3; --muted: #8FA3AD; --amber: #FFA028; --teal: #35D0C3;
+    --red: #FF5F52; --shadow: rgba(0,0,0,.45); color-scheme: dark;
+  }
+  :root[data-theme="light"] {
+    --ground: #F2EEE7; --surface: #FFFFFF; --raised: #FBF8F3; --line: #DED6C9;
+    --ink: #1A2226; --muted: #6B7A82; --amber: #C26A00; --teal: #0E8C82;
+    --red: #C4362B; --shadow: rgba(40,30,15,.10); color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 64px; }
+
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
+  .eyebrow {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--amber); font-weight: 600;
+  }
+  h1 { font-size: 27px; line-height: 1.15; margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+  .sub { color: var(--muted); font-size: 14px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px; margin-bottom: 14px;
+    box-shadow: 0 1px 2px var(--shadow);
+  }
+  .card h2 {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 14px; font-weight: 600;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+  .field input, .field select {
+    background: var(--raised); border: 1px solid var(--line); color: var(--ink);
+    border-radius: 9px; padding: 11px 12px; font-size: 17px; width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .field input:focus-visible, .field select:focus-visible,
+  button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  .runs { display: flex; flex-direction: column; gap: 9px; }
+  .run {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--raised); border: 1px solid var(--line);
+    border-radius: 11px; padding: 13px 14px;
+  }
+  .run.active { border-color: var(--amber); }
+  .run.done { border-color: color-mix(in srgb, var(--teal) 45%, var(--line)); }
+  .dot {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    background: var(--surface); border: 1px solid var(--line); color: var(--muted);
+  }
+  .run.done .dot { background: var(--teal); border-color: var(--teal); color: var(--ground); }
+  .run.active .dot { border-color: var(--amber); color: var(--amber); }
+  .run-body { flex: 1; min-width: 0; }
+  .run-name { font-size: 15px; font-weight: 600; }
+  .run-hint { font-size: 12.5px; color: var(--muted); }
+  .run-val { font-size: 17px; font-weight: 600; }
+  .run-val.pending { color: var(--muted); font-weight: 400; }
+
+  button {
+    font: inherit; border: none; border-radius: 11px; cursor: pointer;
+    padding: 15px 18px; font-weight: 650; letter-spacing: .01em;
+  }
+  .primary { background: var(--amber); color: #1A1206; width: 100%; font-size: 17px; }
+  .primary:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+  .ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--line); padding: 10px 14px; font-size: 14px;
+  }
+
+  .camwrap { position: relative; border-radius: 11px; overflow: hidden; background: #000; aspect-ratio: 4/3; }
+  .camwrap video, .camwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .camwrap canvas { pointer-events: none; }
+
+  /* segmented level meter */
+  .meter { display: flex; gap: 3px; height: 34px; margin: 6px 0 10px; }
+  .seg { flex: 1; border-radius: 2px; background: var(--raised); transition: background .09s linear; }
+  .readout { display: flex; align-items: baseline; justify-content: space-between; }
+  .big { font-size: 40px; font-weight: 700; letter-spacing: -.03em; }
+  .unit { font-size: 12px; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+
+  .note {
+    font-size: 13.5px; color: var(--muted); line-height: 1.55;
+    border-left: 2px solid var(--line); padding-left: 12px; margin: 14px 0 0;
+  }
+  .note strong { color: var(--ink); font-weight: 600; }
+  .warn { border-left-color: var(--amber); }
+  .warn strong { color: var(--amber); }
+
+  .answer { text-align: center; }
+  .answer .line1 { font-size: 15px; color: var(--muted); }
+  .answer .line2 { font-size: 30px; font-weight: 700; margin: 3px 0; letter-spacing: -.02em; }
+  .answer .line3 { font-size: 15px; }
+  .place { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+  .place:first-child { border: none; padding-top: 0; margin-top: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 7px 0; border-bottom: 1px solid var(--line); }
+  td:last-child { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  .hidden { display: none !important; }
+  svg { display: block; margin: 0 auto; max-width: 100%; }
+  @media (prefers-reduced-motion: reduce) { .seg { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Single-plane · four-run method</div>
+    <h1>Fan Balancer</h1>
+    <div class="sub">Measured by camera from the floor. Baseline plus three trial runs — not one per blade.</div>
+  </header>
+
+  <div class="card" id="setup">
+    <h2>Fan</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="blades">Blades</label>
+        <input id="blades" type="number" inputmode="numeric" value="5" min="2" max="10">
+      </div>
+      <div class="field">
+        <label for="tipR">Center → tip (in)</label>
+        <input id="tipR" type="number" inputmode="decimal" value="36" step="0.25">
+      </div>
+      <div class="field">
+        <label for="minR">Nearest usable (in)</label>
+        <input id="minR" type="number" inputmode="decimal" value="8" step="0.5">
+      </div>
+      <div class="field">
+        <label for="maxR">Furthest usable (in)</label>
+        <input id="maxR" type="number" inputmode="decimal" value="34" step="0.5">
+      </div>
+      <div class="field">
+        <label for="trialM">Trial weight (g)</label>
+        <input id="trialM" type="number" inputmode="decimal" value="3" step="0.1">
+      </div>
+      <div class="field">
+        <label for="trialR">Trial at radius (in)</label>
+        <input id="trialR" type="number" inputmode="decimal" value="24" step="0.5">
+      </div>
+    </div>
+    <p class="note">Measure radius from any <strong>repeatable</strong> datum — the edge of the light housing is fine. You do not need the true centre: the answer comes back at the same radius you put the trial weight, so a consistent offset cancels out.</p>
+    <p class="note">Use the <strong>same fan speed for every run</strong> — vibration grows with the square of speed, so mixing speeds corrupts the maths. Use the speed where the wobble bothers you. Prop the phone somewhere <strong>solid and leave it there for all four runs</strong> — a shelf, a stack of books, a tripod. Do not hold it, and do not move it between runs: the camera position is the reference the whole method depends on.</p>
+  </div>
+
+  <div class="card">
+    <h2>Runs</h2>
+    <div class="runs" id="runList"></div>
+    <div style="margin-top:14px">
+      <button class="primary" id="goBtn">Measure baseline</button>
+    </div>
+    <div id="live" class="hidden" style="margin-top:16px">
+      <div class="camwrap">
+        <video id="vid" playsinline muted autoplay></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <p class="note" id="camHint" style="margin-top:10px">Tap a <strong>sharp horizontal edge</strong> on the fan — the rim of the light, or the underside of the motor. That edge is what gets tracked.</p>
+      <div class="meter" id="meter"></div>
+      <div class="readout">
+        <span class="big mono" id="liveVal">0.00</span>
+        <span class="unit" id="liveState">framing</span>
+      </div>
+    </div>
+    <div id="setupWarn"></div>
+  </div>
+
+  <div class="card hidden" id="result">
+    <h2>Correction</h2>
+    <div id="answerBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>Before you chase the last of it</h2>
+    <p class="note" style="margin-top:0">Balancing corrects <strong>mass</strong>. It cannot correct <strong>tracking</strong> — a blade sweeping a different plane. Stand a yardstick under the blade path so it just grazes one tip, rotate the fan by hand, and check every tip passes at the same height. More than about ⅛ in of variation is tracking, and no weight will fix it: bend that blade's iron instead.</p>
+    <p class="note">If wobble <strong>peaks at one speed</strong> and eases above it, that's resonance in the downrod, not imbalance — weights won't help. Wobble that just grows with speed is imbalance, and this tool applies.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var S = {
+    blades: 5, tipR: 36, minR: 8, maxR: 34, trialM: 3, trialR: 24,
+    trialBlades: [], readings: [], step: 0, sampling: false, armed: false
+  };
+  var DUR = 12000;      // ms per run
+  var LEAD = 4000;      // ms after Record before sampling starts
+  var SEGS = 24;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var runList = $('runList'), goBtn = $('goBtn'), live = $('live'),
+      meter = $('meter'), liveVal = $('liveVal'), liveState = $('liveState'),
+      result = $('result'), answerBody = $('answerBody'), setupWarn = $('setupWarn');
+
+  for (var s = 0; s < SEGS; s++) meter.appendChild(Object.assign(document.createElement('div'), { className: 'seg' }));
+  var segs = meter.querySelectorAll('.seg');
+
+  function readSetup() {
+    S.blades = Math.max(2, Math.min(10, +$('blades').value || 5));
+    S.tipR  = +$('tipR').value || 36;
+    S.minR  = +$('minR').value || 8;
+    S.maxR  = +$('maxR').value || 34;
+    S.trialM = +$('trialM').value || 3;
+    S.trialR = +$('trialR').value || 24;
+    // three trial positions, spread as evenly as the blade count allows
+    var n = S.blades, picks = [0, Math.round(n / 3), Math.round(2 * n / 3)], seen = {}, out = [];
+    for (var i = 0; i < picks.length; i++) {
+      var b = picks[i] % n;
+      while (seen[b]) b = (b + 1) % n;
+      seen[b] = 1; out.push(b);
+    }
+    S.trialBlades = out;
+  }
+
+  function bladeAngle(i) { return i * 360 / S.blades; }
+
+  function stepLabel(k) {
+    if (k === 0) return { name: 'Baseline', hint: 'No weight on any blade' };
+    var b = S.trialBlades[k - 1];
+    return {
+      name: 'Trial ' + k + ' — blade ' + (b + 1),
+      hint: S.trialM + ' g at ' + S.trialR + ' in from centre, blade ' + (b + 1) + ' only'
+    };
+  }
+
+  function renderRuns() {
+    runList.innerHTML = '';
+    for (var k = 0; k < 4; k++) {
+      var L = stepLabel(k), done = S.readings[k] != null, active = (k === S.step && !done);
+      var el = document.createElement('div');
+      el.className = 'run' + (done ? ' done' : active ? ' active' : '');
+      el.innerHTML =
+        '<div class="dot">' + (done ? '✓' : (k + 1)) + '</div>' +
+        '<div class="run-body"><div class="run-name"></div><div class="run-hint"></div></div>' +
+        '<div class="run-val mono' + (done ? '' : ' pending') + '"></div>';
+      el.querySelector('.run-name').textContent = L.name;
+      el.querySelector('.run-hint').textContent = L.hint;
+      el.querySelector('.run-val').textContent = done ? S.readings[k].toFixed(2) : '—';
+      runList.appendChild(el);
+    }
+    goBtn.textContent = S.step === 0 ? 'Measure baseline' : (S.step < 4 ? 'Measure run ' + (S.step + 1) : 'Start over');
+    goBtn.disabled = false;
+  }
+
+  function paint(level) {
+    var lit = Math.round(Math.max(0, Math.min(1, level)) * SEGS);
+    for (var i = 0; i < SEGS; i++) {
+      var on = i < lit;
+      segs[i].style.background = on
+        ? (i > SEGS * 0.82 ? 'var(--red)' : i > SEGS * 0.55 ? 'var(--amber)' : 'var(--teal)')
+        : 'var(--raised)';
+    }
+  }
+
+  // ---- camera capture -------------------------------------------------------
+  // The phone never touches the fan (Matt's hangs ~9.5 ft up on a 3 ft downrod,
+  // so there is nothing reachable to press a sensor against). Instead we prop the
+  // phone on the floor side and track a high-contrast HORIZONTAL EDGE on the fan
+  // — the rim of the light, the underside of the motor. Its vertical position is
+  // sampled every frame; the RMS of that wander is the vibration reading.
+  //
+  // Absolute units do not matter. The four-run method only needs a number that is
+  // LINEAR in imbalance and CONSISTENT across the four runs — which is exactly
+  // why the camera must not move once the baseline is taken.
+  var vid = $('vid'), overlay = $('overlay'), camHint = $('camHint');
+  var stream = null, roi = null, work = document.createElement('canvas'), wctx = work.getContext('2d', { willReadFrequently: true });
+  var ROI_W = 46, ROI_H = 130;   // px in video space
+
+  async function ensureCamera() {
+    if (stream) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('This browser will not give the page a camera. Open the page directly in Safari, not inside another app.');
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false
+    });
+    vid.srcObject = stream;
+    await vid.play();
+    work.width = vid.videoWidth || 1280;
+    work.height = vid.videoHeight || 960;
+    if (!roi) roi = { x: work.width / 2, y: work.height / 2 };
+  }
+
+  // Map a tap on the displayed (object-fit: cover) video back to video pixels.
+  $('live').addEventListener('click', function (ev) {
+    if (!stream) return;
+    var r = vid.getBoundingClientRect();
+    var vw = work.width, vh = work.height;
+    var scale = Math.max(r.width / vw, r.height / vh);
+    var dx = (r.width - vw * scale) / 2, dy = (r.height - vh * scale) / 2;
+    var x = (ev.clientX - r.left - dx) / scale, y = (ev.clientY - r.top - dy) / scale;
+    if (x < 0 || y < 0 || x > vw || y > vh) return;
+    roi = { x: x, y: y };
+    camHint.innerHTML = 'Tracking that edge. Re-tap to move it. <strong>Do not move the phone once you start.</strong>';
+  });
+
+  // Sub-pixel vertical edge position inside the ROI, or null if contrast is poor.
+  function edgeY() {
+    if (!roi) return null;
+    var x0 = Math.max(0, Math.round(roi.x - ROI_W / 2));
+    var y0 = Math.max(0, Math.round(roi.y - ROI_H / 2));
+    var w = Math.min(ROI_W, work.width - x0), h = Math.min(ROI_H, work.height - y0);
+    if (w < 6 || h < 12) return null;
+    wctx.drawImage(vid, 0, 0, work.width, work.height);
+    var d = wctx.getImageData(x0, y0, w, h).data;
+    var rows = new Float32Array(h), i, j;
+    for (j = 0; j < h; j++) {
+      var acc = 0;
+      for (i = 0; i < w; i++) {
+        var o = (j * w + i) * 4;
+        acc += 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
+      }
+      rows[j] = acc / w;
+    }
+    // |dI/dy|, then centroid of the gradient — sub-pixel and robust to noise.
+    var num = 0, den = 0, peak = 0;
+    for (j = 1; j < h - 1; j++) {
+      var g = Math.abs(rows[j + 1] - rows[j - 1]);
+      if (g > peak) peak = g;
+      num += g * j; den += g;
+    }
+    if (den < 1e-6 || peak < 6) return null;      // no usable edge in view
+    return { y: y0 + num / den, contrast: peak };
+  }
+
+  function drawOverlay(ok) {
+    var r = vid.getBoundingClientRect();
+    overlay.width = r.width; overlay.height = r.height;
+    var c = overlay.getContext('2d');
+    c.clearRect(0, 0, overlay.width, overlay.height);
+    if (!roi) return;
+    var scale = Math.max(r.width / work.width, r.height / work.height);
+    var dx = (r.width - work.width * scale) / 2, dy = (r.height - work.height * scale) / 2;
+    var cx = roi.x * scale + dx, cy = roi.y * scale + dy;
+    c.strokeStyle = ok ? '#35D0C3' : '#FF5F52';
+    c.lineWidth = 2;
+    c.strokeRect(cx - (ROI_W * scale) / 2, cy - (ROI_H * scale) / 2, ROI_W * scale, ROI_H * scale);
+    c.beginPath(); c.moveTo(cx - 26, cy); c.lineTo(cx + 26, cy); c.stroke();
+  }
+
+  var framing = null;
+  function startFraming() {
+    stopFraming();
+    framing = setInterval(function () {
+      var e = edgeY();
+      drawOverlay(!!e);
+      liveState.textContent = e ? 'edge locked — tap Measure' : 'no edge — tap a sharper line';
+      paint(e ? 0.25 : 0);
+    }, 120);
+  }
+  function stopFraming() { if (framing) { clearInterval(framing); framing = null; } }
+
+  function sample(ms) {
+    return new Promise(function (resolve, reject) {
+      stopFraming();
+      var t0 = Date.now(), ys = [], misses = 0, peak = 0.5;
+      var tick = setInterval(function () {
+        var el = Date.now() - t0 - LEAD;
+        if (el < 0) {
+          liveState.textContent = 'starting in ' + Math.ceil(-el / 1000) + 's';
+          drawOverlay(true);
+          return;
+        }
+        var e = edgeY();
+        if (!e) { misses++; }
+        else {
+          ys.push(e.y);
+          var n = ys.length;
+          if (n > 6) {
+            var k = Math.min(n, 30), sum = 0, q;
+            for (q = n - k; q < n; q++) sum += ys[q];
+            var mean = sum / k, acc = 0;
+            for (q = n - k; q < n; q++) acc += (ys[q] - mean) * (ys[q] - mean);
+            var rms = Math.sqrt(acc / k);
+            peak = Math.max(peak, rms);
+            paint(rms / Math.max(peak, 0.4));
+          }
+        }
+        drawOverlay(!!e);
+        liveState.textContent = Math.max(0, Math.ceil((ms - el) / 1000)) + 's left';
+        if (el >= ms) {
+          clearInterval(tick);
+          if (ys.length < 40) { reject(new Error('Lost the edge for most of that run (' + ys.length + ' good frames). Tap a higher-contrast line, add light, and try again.')); return; }
+          if (misses > ys.length) { reject(new Error('The edge kept dropping out. Pick a crisper horizontal line on the fan.')); return; }
+          var N = ys.length, s2 = 0, m2 = 0, z;
+          for (z = 0; z < N; z++) m2 += ys[z];
+          m2 /= N;
+          for (z = 0; z < N; z++) s2 += (ys[z] - m2) * (ys[z] - m2);
+          resolve(Math.sqrt(s2 / N));       // px RMS — linear in imbalance
+        }
+      }, 33);
+    });
+  }
+
+  goBtn.addEventListener('click', async function () {
+    if (S.sampling) return;
+    if (S.step >= 4) {   // start over
+      S.readings = []; S.step = 0; result.classList.add('hidden'); setupWarn.innerHTML = '';
+      renderRuns(); return;
+    }
+    if (S.step === 0) readSetup();
+    setupWarn.innerHTML = '';
+    live.classList.remove('hidden');
+    try { await ensureCamera(); startFraming(); }
+    catch (err) {
+      setupWarn.innerHTML = '<p class="note warn"><strong>Camera unavailable.</strong> ' + err.message + '</p>';
+      return;
+    }
+    if (!S.armed) {   // first tap only frames the shot; second tap records
+      S.armed = true;
+      goBtn.textContent = 'Record ' + (S.step === 0 ? 'baseline' : 'run ' + (S.step + 1));
+      camHint.innerHTML = 'Tap a <strong>sharp horizontal edge</strong> on the fan, get the fan up to speed, then Record.';
+      return;
+    }
+
+    S.sampling = true; goBtn.disabled = true; S.armed = false;
+    liveVal.textContent = '0.00';
+    try {
+      var v = await sample(DUR);
+      S.readings[S.step] = v;
+      liveVal.textContent = v.toFixed(2);
+      liveState.textContent = 'recorded';
+      S.step++;
+      renderRuns();
+      startFraming();
+      if (S.step >= 4) solve();
+    } catch (err) {
+      setupWarn.innerHTML = '<p class="note warn"><strong>' + err.message + '</strong></p>';
+      liveState.textContent = 'failed';
+    } finally {
+      S.sampling = false; goBtn.disabled = false; paint(0);
+    }
+  });
+
+  // ---- the maths -----------------------------------------------------------
+  // Baseline imbalance vector O has magnitude O0 (measured) at unknown angle a.
+  // A trial weight at angle t adds a vector of unknown magnitude E at angle t:
+  //     V(t)^2 = O0^2 + E^2 + 2*O0*E*cos(t - a)
+  // Expanding cos(t-a) makes this LINEAR in
+  //     A = 2*O0*E*cos a,  B = 2*O0*E*sin a,  C = E^2
+  //     V^2 - O0^2 = A*cos t + B*sin t + C
+  // Three trial runs give three equations -> exact 3x3 solve. No phase sensor
+  // needed, and no run per blade.
+  function solve3(M, y) {
+    var d = M[0][0]*(M[1][1]*M[2][2]-M[1][2]*M[2][1])
+          - M[0][1]*(M[1][0]*M[2][2]-M[1][2]*M[2][0])
+          + M[0][2]*(M[1][0]*M[2][1]-M[1][1]*M[2][0]);
+    if (Math.abs(d) < 1e-12) return null;
+    function det3(c, v) {
+      var m = [M[0].slice(), M[1].slice(), M[2].slice()];
+      for (var r = 0; r < 3; r++) m[r][c] = v[r];
+      return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+           - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+           + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+    }
+    return [det3(0,y)/d, det3(1,y)/d, det3(2,y)/d];
+  }
+
+  function solve() {
+    var rad = Math.PI / 180;
+    var O0 = S.readings[0];
+    var M = [], y = [];
+    for (var i = 0; i < 3; i++) {
+      var t = bladeAngle(S.trialBlades[i]) * rad;
+      M.push([Math.cos(t), Math.sin(t), 1]);
+      y.push(S.readings[i + 1] * S.readings[i + 1] - O0 * O0);
+    }
+    var sol = solve3(M, y);
+    if (!sol) { fail('Those three runs are not independent enough to solve. Re-measure.'); return; }
+    var A = sol[0], B = sol[1], C = sol[2];
+    var Emag = Math.sqrt(Math.max(A*A + B*B, 0)) / (2 * Math.max(O0, 1e-9));
+    var Ealt = Math.sqrt(Math.max(C, 0));
+    var E = Emag > 0 ? Emag : Ealt;
+
+    if (!(E > 0) || !isFinite(E)) { fail('The trial weight barely changed the reading, so there is nothing to solve from. Use a heavier trial weight, or move it further out.'); return; }
+    if (O0 < 1e-6) { fail('The baseline reading is essentially zero — this fan is already balanced at this speed.'); return; }
+
+    var alpha = Math.atan2(B, A) / rad;                  // heavy-spot angle
+    var psi = ((alpha + 180) % 360 + 360) % 360;          // correction angle
+    var W = S.trialM * (O0 / E);                          // grams at the trial radius
+    var moment = W * S.trialR;                            // gram-inches of correction
+
+    // split the correction between the two blades it falls between
+    var n = S.blades, step = 360 / n;
+    var lo = Math.floor(psi / step) % n, hi = (lo + 1) % n;
+    var aLo = bladeAngle(lo) * rad, aHi = bladeAngle(hi) * rad, p = psi * rad;
+    var det = Math.cos(aLo) * Math.sin(aHi) - Math.sin(aLo) * Math.cos(aHi);
+    var wLo = ( Math.cos(p) * Math.sin(aHi) - Math.sin(p) * Math.cos(aHi)) / det;
+    var wHi = (-Math.cos(p) * Math.sin(aLo) + Math.sin(p) * Math.cos(aLo)) / det;
+
+    var parts = [];
+    [[lo, wLo], [hi, wHi]].forEach(function (pr) {
+      var g = pr[1] * W;
+      if (g > 0.02) parts.push({ blade: pr[0], grams: g, moment: g * S.trialR });
+    });
+
+    // Put each part at a REACHABLE radius. This is the bug in the other app:
+    // it solved for radius without constraining it to the blade, and handed
+    // back a position inside the motor housing.
+    var rows = '', flagged = false;
+    parts.forEach(function (pt) {
+      var r = S.trialR, g = pt.grams;
+      if (g > 12) { r = Math.min(S.maxR, S.tipR); g = pt.moment / r; }        // heavy -> move out
+      if (g < 0.4) { r = Math.max(S.minR, 1); g = pt.moment / r; }            // light -> move in
+      r = Math.max(S.minR, Math.min(S.maxR, r));
+      g = pt.moment / r;
+      pt.r = r; pt.g = g;
+      if (g < 0.15) flagged = true;
+    });
+
+    var html = '';
+    parts.sort(function (a, b) { return b.g - a.g; }).forEach(function (pt) {
+      html += '<div class="place">' +
+        '<div class="answer">' +
+          '<div class="line1">Blade ' + (pt.blade + 1) + '</div>' +
+          '<div class="line2 mono">' + pt.g.toFixed(2) + ' g</div>' +
+          '<div class="line3">at <span class="mono">' + pt.r.toFixed(2) + ' in</span> from centre' +
+            ' &nbsp;·&nbsp; <span class="mono">' + (S.tipR - pt.r).toFixed(2) + ' in</span> from the tip</div>' +
+        '</div></div>';
+    });
+
+    html += diagram(psi, parts);
+
+    html += '<table style="margin-top:16px">' +
+      row('Baseline vibration', O0.toFixed(2)) +
+      row('Heavy spot', alpha.toFixed(0) + '° (blade 1 = 0°)') +
+      row('Correction at', psi.toFixed(0) + '°') +
+      row('Total correction', moment.toFixed(1) + ' g·in') +
+      row('Trial effect', (E / O0 * 100).toFixed(0) + '% of baseline') +
+      '</table>';
+
+    if (flagged) {
+      html += '<p class="note warn"><strong>One of these is tiny.</strong> A correction under about 0.15 g is inside the noise of a phone accelerometer — fit the larger one alone, re-measure, and see where you land.</p>';
+    }
+    if (E / O0 < 0.15) {
+      html += '<p class="note warn"><strong>The trial weight moved the reading very little</strong>, so this answer is poorly conditioned. Redo with a heavier trial weight for a result you can trust.</p>';
+    }
+    html += '<p class="note">Weigh with a kitchen scale, or use washers — a correction is <strong>mass × radius</strong>, so ' + moment.toFixed(0) + ' g·in can be met as ' + (moment / 12).toFixed(1) + ' g at 12 in or ' + (moment / 30).toFixed(1) + ' g at 30 in. Tape works as well as clips.</p>';
+
+    answerBody.innerHTML = html;
+    result.classList.remove('hidden');
+    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function row(k, v) { return '<tr><td>' + k + '</td><td>' + v + '</td></tr>'; }
+
+  function fail(msg) {
+    answerBody.innerHTML = '<p class="note warn"><strong>' + msg + '</strong></p>';
+    result.classList.remove('hidden');
+  }
+
+  function diagram(psi, parts) {
+    var R = 96, cx = 120, cy = 120, out = '';
+    var marks = {};
+    parts.forEach(function (p) { marks[p.blade] = p; });
+    for (var i = 0; i < S.blades; i++) {
+      var a = (bladeAngle(i) - 90) * Math.PI / 180;
+      var x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
+      var hot = marks[i] != null;
+      out += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) +
+             '" stroke="' + (hot ? 'var(--amber)' : 'var(--line)') + '" stroke-width="' + (hot ? 7 : 5) +
+             '" stroke-linecap="round"/>';
+      var lx = cx + Math.cos(a) * (R + 17), ly = cy + Math.sin(a) * (R + 17);
+      out += '<text x="' + lx.toFixed(1) + '" y="' + (ly + 4).toFixed(1) + '" text-anchor="middle" ' +
+             'font-size="12" font-family="ui-monospace,Menlo,monospace" fill="' +
+             (hot ? 'var(--amber)' : 'var(--muted)') + '">' + (i + 1) + '</text>';
+      if (hot) {
+        var pr = marks[i].r / S.tipR * R;
+        out += '<circle cx="' + (cx + Math.cos(a) * pr).toFixed(1) + '" cy="' + (cy + Math.sin(a) * pr).toFixed(1) +
+               '" r="6" fill="var(--amber)"/>';
+      }
+    }
+    var ha = (psi + 180 - 90) * Math.PI / 180;
+    out += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + Math.cos(ha) * (R - 12)).toFixed(1) +
+           '" y2="' + (cy + Math.sin(ha) * (R - 12)).toFixed(1) +
+           '" stroke="var(--red)" stroke-width="2" stroke-dasharray="4 4"/>';
+    out += '<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="var(--surface)" stroke="var(--line)"/>';
+    return '<svg viewBox="0 0 240 250" width="240" height="250" role="img" aria-label="Fan diagram: amber blades and dots mark where to add weight; the dashed red line points at the heavy spot.">' +
+      out + '<text x="120" y="243" text-anchor="middle" font-size="11" fill="var(--muted)">dashed = heavy spot</text></svg>';
+  }
+
+  ['blades','tipR','minR','maxR','trialM','trialR'].forEach(function (id) {
+    $(id).addEventListener('change', function () { readSetup(); renderRuns(); });
+  });
+  readSetup();
+  renderRuns();
+  paint(0);
+})();
+</script>
+</body>
+</html>
