@@ -126,7 +126,19 @@
     border: 1px solid var(--line); padding: 10px 14px; font-size: 14px;
   }
 
-  .camwrap { position: relative; border-radius: 11px; overflow: hidden; background: #000; aspect-ratio: 4/3; }
+  ol.steps { margin:0; padding-left:22px; }
+  ol.steps li { margin-bottom:9px; }
+  ol.steps li:last-child { margin-bottom:0; }
+  .stop { background: color-mix(in srgb, var(--amber) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--line));
+    border-radius: 11px; padding: 13px 15px; margin-bottom: 16px; }
+  .stop b { color: var(--amber); }
+  .row { display:flex; gap:9px; margin-top:12px; }
+  .flip { background: var(--raised); color: var(--ink); border: 1px solid var(--line);
+    font-size: 14px; padding: 12px 14px; flex: none; }
+  .tapme { position:absolute; left:0; right:0; bottom:0; padding:10px 12px; font-size:13.5px;
+    background: rgba(0,0,0,.62); color:#fff; text-align:center; }
+  .camwrap { position: relative; border-radius: 11px; overflow: hidden; background: #000; aspect-ratio: 3/4; }
   .camwrap video, .camwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .camwrap canvas { pointer-events: none; }
 
@@ -169,6 +181,17 @@
     <div class="sub">Measured by camera from the floor. One baseline plus three test weights — not one per blade.</div>
   </header>
 
+  <div class="card">
+    <h2>How this goes</h2>
+    <div class="stop"><b>Prop your phone up and don't touch it again.</b> Lean it against something, or lay it on the floor pointing up. If you hold it, this cannot work — the camera can't tell your hand shaking from the fan wobbling.</div>
+    <ol class="steps">
+      <li>Point the phone at the fan so the <b>light</b> is in frame.</li>
+      <li><b>Tap the middle of the light on your screen.</b> A circle appears — that is what gets tracked.</li>
+      <li>Run the fan at the speed that bothers you, and use that <b>same speed all four times</b>.</li>
+      <li>Take 4 readings: one with nothing added, then one each with a test weight on three different blades.</li>
+    </ol>
+  </div>
+
   <div class="card" id="setup">
     <h2>Your fan</h2>
     <div class="grid">
@@ -186,10 +209,10 @@
           <span class="rlab">no closer in than</span>
           <input id="minR" type="number" inputmode="decimal" value="8" step="0.5">
           <span class="rlab">and no further out than</span>
-          <input id="maxR" type="number" inputmode="decimal" value="34" step="0.5">
+          <input id="maxR" type="number" inputmode="decimal" value="36" step="0.5">
           <span class="rlab">inches from the center</span>
         </div>
-        <p class="hint">Closer in than the first number you would hit the light or the motor housing. Further out than the second and the blade gets too narrow to hold anything. Eyeball it — this only stops the tool from suggesting a spot that does not exist.</p>
+        <p class="hint">Closer in than the first number you'd hit the light or the motor. The second can go all the way out to the blade tip if you can clip the outer edge. Rough numbers are fine — this only stops it suggesting a spot that doesn't exist.</p>
       </div>
       <div class="field">
         <label for="trialM">Test weight (grams)</label>
@@ -201,21 +224,22 @@
       </div>
     </div>
     <p class="note">Measure radius from any <strong>repeatable</strong> datum — the edge of the light housing is fine. You do not need the true center: the answer comes back at the same radius you put the trial weight, so a consistent offset cancels out.</p>
-    <p class="note">Use the <strong>same fan speed every time</strong> — vibration grows with the square of speed, so mixing speeds corrupts the maths. Use the speed where the wobble bothers you. Prop the phone somewhere <strong>solid and leave it there for all four readings</strong> — a shelf, a stack of books, a tripod. Do not hold it, and do not move it between readings: the camera position is the reference the whole method depends on.</p>
+    <p class="note">Use the <strong>same fan speed every time</strong> — vibration grows with the square of speed, so mixing speeds corrupts the maths. Use the speed where the wobble bothers you. The phone must sit still for all four readings — the camera position is the reference everything is measured against.</p>
   </div>
 
   <div class="card">
     <h2>Four readings</h2>
     <div class="runs" id="runList"></div>
-    <div style="margin-top:14px">
-      <button class="primary" id="goBtn">Measure baseline</button>
+    <div class="row">
+      <button class="primary" id="goBtn">Turn on camera</button>
+      <button class="flip hidden" id="flipBtn">Flip camera</button>
     </div>
     <div id="live" class="hidden" style="margin-top:16px">
       <div class="camwrap">
         <video id="vid" playsinline muted autoplay></video>
         <canvas id="overlay"></canvas>
+        <div class="tapme" id="tapme">Tap the middle of the light</div>
       </div>
-      <p class="note" id="camHint" style="margin-top:10px">Tap a <strong>sharp horizontal edge</strong> on the fan — the rim of the light, or the underside of the motor. That edge is what gets tracked.</p>
       <div class="meter" id="meter"></div>
       <div class="readout">
         <span class="big mono" id="liveVal">0.00</span>
@@ -275,11 +299,11 @@
   function bladeAngle(i) { return i * 360 / S.blades; }
 
   function stepLabel(k) {
-    if (k === 0) return { name: 'Baseline', hint: 'Nothing stuck on any blade yet' };
+    if (k === 0) return { name: 'Reading 1 — nothing added', hint: 'No weight on any blade yet' };
     var b = S.trialBlades[k - 1];
     return {
-      name: 'Test ' + k + ' — blade ' + (b + 1),
-      hint: 'Stick ' + S.trialM + ' g on blade ' + (b + 1) + ' only, ' + S.trialR + ' in out from the center'
+      name: 'Reading ' + (k + 1) + ' — weight on blade ' + (b + 1),
+      hint: 'Move the ' + S.trialM + ' g weight to blade ' + (b + 1) + ' only, ' + S.trialR + ' in out'
     };
   }
 
@@ -298,7 +322,10 @@
       el.querySelector('.run-val').textContent = done ? S.readings[k].toFixed(2) : '—';
       runList.appendChild(el);
     }
-    goBtn.textContent = S.step === 0 ? 'Start — measure baseline' : (S.step < 4 ? 'Next reading (' + (S.step + 1) + ' of 4)' : 'Start over');
+    if (!stream) goBtn.textContent = 'Turn on camera';
+    else if (S.step >= 4) goBtn.textContent = 'Start over';
+    else if (!S.armed) goBtn.textContent = 'Ready — reading ' + (S.step + 1) + ' of 4';
+    else goBtn.textContent = 'Record reading ' + (S.step + 1);
     goBtn.disabled = false;
   }
 
@@ -312,167 +339,165 @@
     }
   }
 
-  // ---- camera capture -------------------------------------------------------
-  // The phone never touches the fan (Matt's hangs ~9.5 ft up on a 3 ft downrod,
-  // so there is nothing reachable to press a sensor against). Instead we prop the
-  // phone on the floor side and track a high-contrast HORIZONTAL EDGE on the fan
-  // — the rim of the light, the underside of the motor. Its vertical position is
-  // sampled every frame; the RMS of that wander is the vibration reading.
-  //
-  // Absolute units do not matter. The four-run method only needs a number that is
-  // LINEAR in imbalance and CONSISTENT across the four runs — which is exactly
-  // why the camera must not move once the baseline is taken.
-  var vid = $('vid'), overlay = $('overlay'), camHint = $('camHint');
-  var stream = null, roi = null, work = document.createElement('canvas'), wctx = work.getContext('2d', { willReadFrequently: true });
-  var ROI_W = 46, ROI_H = 130;   // px in video space
+  // ---- camera ---------------------------------------------------------------
+  // We track the LIGHT, not an "edge". A lit fixture is bright, round and
+  // rotationally symmetric, so its brightness centroid holds still while the fan
+  // spins and moves only when the whole fan wobbles — exactly the signal we want,
+  // and something you can actually aim at. Matt's other app worked the same way
+  // (a dot in the middle of the light) and that instruction was clear; mine was not.
+  var vid = $('vid'), overlay = $('overlay'), tapme = $('tapme'), flipBtn = $('flipBtn');
+  var stream = null, target = null, facing = 'environment';
+  var work = document.createElement('canvas'),
+      wctx = work.getContext('2d', { willReadFrequently: true });
+  var BOX = 190;   // px of video the circle covers
 
   async function ensureCamera() {
-    if (stream) return;
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      throw new Error('This browser will not give the page a camera. Open the page directly in Safari, not inside another app.');
+      throw new Error('This browser will not share a camera. Open the page in Safari directly, not inside another app.');
     }
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 960 } },
+      video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 960 } },
       audio: false
     });
     vid.srcObject = stream;
     await vid.play();
     work.width = vid.videoWidth || 1280;
     work.height = vid.videoHeight || 960;
-    if (!roi) roi = { x: work.width / 2, y: work.height / 2 };
+    if (!target) target = { x: work.width / 2, y: work.height / 2 };
+    flipBtn.classList.remove('hidden');
   }
 
-  // Map a tap on the displayed (object-fit: cover) video back to video pixels.
-  $('live').addEventListener('click', function (ev) {
+  // Tap anywhere on the video to put the circle there.
+  $('camwrap').addEventListener('click', function (ev) {
     if (!stream) return;
     var r = vid.getBoundingClientRect();
-    var vw = work.width, vh = work.height;
-    var scale = Math.max(r.width / vw, r.height / vh);
-    var dx = (r.width - vw * scale) / 2, dy = (r.height - vh * scale) / 2;
+    var scale = Math.max(r.width / work.width, r.height / work.height);
+    var dx = (r.width - work.width * scale) / 2, dy = (r.height - work.height * scale) / 2;
     var x = (ev.clientX - r.left - dx) / scale, y = (ev.clientY - r.top - dy) / scale;
-    if (x < 0 || y < 0 || x > vw || y > vh) return;
-    roi = { x: x, y: y };
-    camHint.innerHTML = 'Tracking that edge. Re-tap to move it. <strong>Do not move the phone once you start.</strong>';
+    if (x < 0 || y < 0 || x > work.width || y > work.height) return;
+    target = { x: x, y: y };
+    tapme.textContent = 'Tracking there — tap again to move it';
   });
 
-  // Sub-pixel vertical edge position inside the ROI, or null if contrast is poor.
-  function edgeY() {
-    if (!roi) return null;
-    var x0 = Math.max(0, Math.round(roi.x - ROI_W / 2));
-    var y0 = Math.max(0, Math.round(roi.y - ROI_H / 2));
-    var w = Math.min(ROI_W, work.width - x0), h = Math.min(ROI_H, work.height - y0);
-    if (w < 6 || h < 12) return null;
+  // Brightness-weighted centroid inside the circle. null when nothing is bright
+  // enough to lock onto.
+  function centroid() {
+    if (!target) return null;
+    var x0 = Math.max(0, Math.round(target.x - BOX / 2)), y0 = Math.max(0, Math.round(target.y - BOX / 2));
+    var w = Math.min(BOX, work.width - x0), h = Math.min(BOX, work.height - y0);
+    if (w < 20 || h < 20) return null;
     wctx.drawImage(vid, 0, 0, work.width, work.height);
-    var d = wctx.getImageData(x0, y0, w, h).data;
-    var rows = new Float32Array(h), i, j;
-    for (j = 0; j < h; j++) {
-      var acc = 0;
-      for (i = 0; i < w; i++) {
-        var o = (j * w + i) * 4;
-        acc += 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
-      }
-      rows[j] = acc / w;
+    var d = wctx.getImageData(x0, y0, w, h).data, N = w * h;
+    var lum = new Float32Array(N), max = 0, mean = 0, i;
+    for (i = 0; i < N; i++) {
+      var o = i * 4, L = 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
+      lum[i] = L; mean += L; if (L > max) max = L;
     }
-    // |dI/dy|, then centroid of the gradient — sub-pixel and robust to noise.
-    var num = 0, den = 0, peak = 0;
-    for (j = 1; j < h - 1; j++) {
-      var g = Math.abs(rows[j + 1] - rows[j - 1]);
-      if (g > peak) peak = g;
-      num += g * j; den += g;
+    mean /= N;
+    if (max - mean < 14) return null;
+    var thr = mean + (max - mean) * 0.45, sx = 0, sy = 0, sw = 0;
+    for (i = 0; i < N; i++) {
+      if (lum[i] < thr) continue;
+      var v = lum[i] - thr;
+      sx += (i % w) * v; sy += Math.floor(i / w) * v; sw += v;
     }
-    if (den < 1e-6 || peak < 6) return null;      // no usable edge in view
-    return { y: y0 + num / den, contrast: peak };
+    if (sw < 40) return null;
+    return { x: x0 + sx / sw, y: y0 + sy / sw };
   }
 
   function drawOverlay(ok) {
     var r = vid.getBoundingClientRect();
     overlay.width = r.width; overlay.height = r.height;
     var c = overlay.getContext('2d');
-    c.clearRect(0, 0, overlay.width, overlay.height);
-    if (!roi) return;
+    c.clearRect(0, 0, r.width, r.height);
+    if (!target) return;
     var scale = Math.max(r.width / work.width, r.height / work.height);
     var dx = (r.width - work.width * scale) / 2, dy = (r.height - work.height * scale) / 2;
-    var cx = roi.x * scale + dx, cy = roi.y * scale + dy;
-    c.strokeStyle = ok ? '#35D0C3' : '#FF5F52';
-    c.lineWidth = 2;
-    c.strokeRect(cx - (ROI_W * scale) / 2, cy - (ROI_H * scale) / 2, ROI_W * scale, ROI_H * scale);
-    c.beginPath(); c.moveTo(cx - 26, cy); c.lineTo(cx + 26, cy); c.stroke();
+    var cx = target.x * scale + dx, cy = target.y * scale + dy, rad = (BOX * scale) / 2;
+    c.strokeStyle = ok ? '#35D0C3' : '#FF5F52'; c.lineWidth = 3;
+    c.beginPath(); c.arc(cx, cy, rad, 0, Math.PI * 2); c.stroke();
+    c.beginPath();
+    c.moveTo(cx - 16, cy); c.lineTo(cx + 16, cy);
+    c.moveTo(cx, cy - 16); c.lineTo(cx, cy + 16); c.stroke();
   }
 
   var framing = null;
   function startFraming() {
     stopFraming();
     framing = setInterval(function () {
-      var e = edgeY();
-      drawOverlay(!!e);
-      liveState.textContent = e ? 'edge locked — tap Measure' : 'no edge — tap a sharper line';
-      paint(e ? 0.25 : 0);
-    }, 120);
+      var p = centroid();
+      drawOverlay(!!p);
+      liveState.textContent = p ? 'locked on' : 'tap the light';
+      paint(p ? 0.2 : 0);
+    }, 140);
   }
   function stopFraming() { if (framing) { clearInterval(framing); framing = null; } }
 
   function sample(ms) {
     return new Promise(function (resolve, reject) {
       stopFraming();
-      var t0 = Date.now(), ys = [], misses = 0, peak = 0.5;
+      var t0 = Date.now(), xs = [], ys = [], misses = 0, peak = 0.4;
       var tick = setInterval(function () {
         var el = Date.now() - t0 - LEAD;
-        if (el < 0) {
-          liveState.textContent = 'starting in ' + Math.ceil(-el / 1000) + 's';
-          drawOverlay(true);
-          return;
-        }
-        var e = edgeY();
-        if (!e) { misses++; }
+        if (el < 0) { liveState.textContent = 'starting in ' + Math.ceil(-el / 1000) + 's'; drawOverlay(true); return; }
+        var p = centroid();
+        if (!p) misses++;
         else {
-          ys.push(e.y);
-          var n = ys.length;
+          xs.push(p.x); ys.push(p.y);
+          var n = xs.length;
           if (n > 6) {
-            var k = Math.min(n, 30), sum = 0, q;
-            for (q = n - k; q < n; q++) sum += ys[q];
-            var mean = sum / k, acc = 0;
-            for (q = n - k; q < n; q++) acc += (ys[q] - mean) * (ys[q] - mean);
+            var k = Math.min(n, 30), mx = 0, my = 0, q;
+            for (q = n - k; q < n; q++) { mx += xs[q]; my += ys[q]; }
+            mx /= k; my /= k;
+            var acc = 0;
+            for (q = n - k; q < n; q++) acc += (xs[q] - mx) * (xs[q] - mx) + (ys[q] - my) * (ys[q] - my);
             var rms = Math.sqrt(acc / k);
             peak = Math.max(peak, rms);
-            paint(rms / Math.max(peak, 0.4));
+            paint(rms / Math.max(peak, 0.3));
           }
         }
-        drawOverlay(!!e);
+        drawOverlay(!!p);
         liveState.textContent = Math.max(0, Math.ceil((ms - el) / 1000)) + 's left';
         if (el >= ms) {
           clearInterval(tick);
-          if (ys.length < 40) { reject(new Error('Lost the edge for most of that run (' + ys.length + ' good frames). Tap a higher-contrast line, add light, and try again.')); return; }
-          if (misses > ys.length) { reject(new Error('The edge kept dropping out. Pick a crisper horizontal line on the fan.')); return; }
-          var N = ys.length, s2 = 0, m2 = 0, z;
-          for (z = 0; z < N; z++) m2 += ys[z];
-          m2 /= N;
-          for (z = 0; z < N; z++) s2 += (ys[z] - m2) * (ys[z] - m2);
-          resolve(Math.sqrt(s2 / N));       // px RMS — linear in imbalance
+          if (xs.length < 40) { reject(new Error('Lost the light for most of that reading. Turn the fan light on, tap right in the middle of it, and try again.')); return; }
+          if (misses > xs.length) { reject(new Error('The light kept dropping out of the circle. Move the phone closer, or tap a brighter spot.')); return; }
+          var N = xs.length, ax = 0, ay = 0, z;
+          for (z = 0; z < N; z++) { ax += xs[z]; ay += ys[z]; }
+          ax /= N; ay /= N;
+          var s2 = 0;
+          for (z = 0; z < N; z++) s2 += (xs[z] - ax) * (xs[z] - ax) + (ys[z] - ay) * (ys[z] - ay);
+          resolve(Math.sqrt(s2 / N));
         }
       }, 33);
     });
   }
 
+  flipBtn.addEventListener('click', async function () {
+    facing = (facing === 'environment') ? 'user' : 'environment';
+    target = null;
+    tapme.textContent = 'Tap the middle of the light';
+    try { await ensureCamera(); startFraming(); }
+    catch (e) { setupWarn.innerHTML = '<p class="note warn"><strong>Could not switch camera.</strong> ' + e.message + '</p>'; }
+  });
+
   goBtn.addEventListener('click', async function () {
     if (S.sampling) return;
-    if (S.step >= 4) {   // start over
-      S.readings = []; S.step = 0; result.classList.add('hidden'); setupWarn.innerHTML = '';
-      renderRuns(); return;
+    if (S.step >= 4 && stream) {   // start over
+      S.readings = []; S.step = 0; S.armed = false;
+      result.classList.add('hidden'); setupWarn.innerHTML = '';
+      renderRuns(); startFraming(); return;
     }
     if (S.step === 0) readSetup();
     setupWarn.innerHTML = '';
     live.classList.remove('hidden');
-    try { await ensureCamera(); startFraming(); }
-    catch (err) {
-      setupWarn.innerHTML = '<p class="note warn"><strong>Camera unavailable.</strong> ' + err.message + '</p>';
+    if (!stream) {
+      try { await ensureCamera(); startFraming(); renderRuns(); }
+      catch (err) { setupWarn.innerHTML = '<p class="note warn"><strong>No camera.</strong> ' + err.message + '</p>'; }
       return;
     }
-    if (!S.armed) {   // first tap only frames the shot; second tap records
-      S.armed = true;
-      goBtn.textContent = 'Record ' + (S.step === 0 ? 'baseline' : 'reading ' + (S.step + 1));
-      camHint.innerHTML = 'Tap a <strong>sharp horizontal edge</strong> on the fan, get the fan up to speed, then Record.';
-      return;
-    }
+    if (!S.armed) { S.armed = true; renderRuns(); return; }
 
     S.sampling = true; goBtn.disabled = true; S.armed = false;
     liveVal.textContent = '0.00';
