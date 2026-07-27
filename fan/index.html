@@ -234,6 +234,14 @@
       <button class="primary" id="goBtn">Turn on camera</button>
       <button class="flip hidden" id="flipBtn">Flip camera</button>
     </div>
+    <div class="row hidden" id="autoRow">
+      <button class="primary" id="autoBtn" style="background:var(--teal);color:#06201E">▶︎ Run all 4 hands-free</button>
+    </div>
+    <p class="hint hidden" id="autoHint">It speaks every instruction out loud and waits for you.
+      Press once, then <b>don't touch the phone again</b> — walk over, move the weight, walk back.
+      <label class="rlab" style="display:block;margin-top:8px">Seconds to move the weight between readings</label>
+      <input id="gap" type="number" inputmode="numeric" value="90" min="20" max="600" step="10" style="width:110px">
+    </p>
     <div id="live" class="hidden" style="margin-top:16px">
       <div class="camwrap" id="camwrap">
         <video id="vid" playsinline muted autoplay></video>
@@ -275,7 +283,7 @@ window.addEventListener('error', function (e) {
 (function () {
   var S = {
     blades: 5, tipR: 36, minR: 8, maxR: 34, trialM: 3, trialR: 24,
-    trialBlades: [], readings: [], step: 0, sampling: false, armed: false
+    trialBlades: [], readings: [], step: 0, sampling: false, armed: false, gap: 90
   };
   var DUR = 12000;      // ms per run
   var LEAD = 4000;      // ms after Record before sampling starts
@@ -603,6 +611,92 @@ window.addEventListener('error', function (e) {
     catch (e) { setupWarn.innerHTML = '<p class="note warn"><strong>Could not switch camera.</strong> ' + e.message + '</p>'; }
   });
 
+  // ---- hands-free -----------------------------------------------------------
+  // Matt: "I can't keep the position the same for all four readings because I
+  // have to pick up the phone to see the instructions and hit the button!"
+  // That is fatal to the method — every reading has to share one camera
+  // position. So the phone talks instead: press once, then never touch it.
+  var speakOn = false, wakeLock = null;
+
+  function say(text) {
+    try {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.95; u.volume = 1;
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* speech is a convenience, never a dependency */ }
+  }
+  function unlockSpeech() {          // iOS only allows speech after a gesture
+    if (speakOn) return;
+    speakOn = true;
+    say(' ');
+  }
+  async function keepAwake() {
+    try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); }
+    catch (e) { /* screen may sleep; the run still completes */ }
+  }
+  function releaseAwake() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
+
+  function wait(ms, label) {
+    return new Promise(function (resolve) {
+      var end = Date.now() + ms, spoken = {};
+      var t = setInterval(function () {
+        var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+        tapme.textContent = label + ' — ' + left + 's';
+        liveState.textContent = left + 's';
+        if ((left === 30 || left === 10) && !spoken[left]) { spoken[left] = 1; say(left + ' seconds'); }
+        if (left <= 0) { clearInterval(t); resolve(); }
+      }, 250);
+    });
+  }
+
+  async function runHandsFree() {
+    unlockSpeech();
+    await keepAwake();
+    await watchPhoneMotion();
+    readSetup();
+    S.readings = []; S.step = 0;
+    result.classList.add('hidden'); setupWarn.innerHTML = '';
+    renderRuns();
+    autoBtn.disabled = true; goBtn.disabled = true;
+
+    try {
+      for (var k = 0; k < 4; k++) {
+        var b = (k === 0) ? null : S.trialBlades[k - 1];
+        var instruction = (k === 0)
+          ? 'Reading 1 of 4. Take all weights off the blades. Then step away from the phone.'
+          : 'Reading ' + (k + 1) + ' of 4. Move the weight to blade ' + (b + 1) +
+            ', ' + S.trialR + ' inches out from the center. Then step away from the phone.';
+        say(instruction);
+        tapme.textContent = instruction;
+        await wait(S.gap * 1000, k === 0 ? 'Clear the blades' : 'Move the weight to blade ' + (b + 1));
+
+        if (!centroid()) autoFindLight();
+        say('Measuring. Hold still.');
+        var v = await sample(DUR);
+        S.readings[k] = v;
+        liveVal.textContent = v.toFixed(2);
+        S.step = k + 1;
+        renderRuns();
+        say('Reading ' + (k + 1) + ' recorded.');
+      }
+      say('All four readings done. Here is the answer.');
+      solve();
+    } catch (err) {
+      setupWarn.innerHTML = '<p class="note warn"><strong>' + err.message + '</strong></p>';
+      say('That reading failed. ' + err.message);
+    } finally {
+      autoBtn.disabled = false; goBtn.disabled = false;
+      releaseAwake(); startFraming();
+    }
+  }
+
+  autoBtn.addEventListener('click', function () {
+    if (!stream) { setupWarn.innerHTML = '<p class="note warn"><strong>Turn the camera on first.</strong></p>'; return; }
+    runHandsFree();
+  });
+
   goBtn.addEventListener('click', async function () {
     if (S.sampling) return;
     if (S.step >= 4 && stream) {   // start over
@@ -614,7 +708,8 @@ window.addEventListener('error', function (e) {
     setupWarn.innerHTML = '';
     live.classList.remove('hidden');
     if (!stream) {
-      try { await ensureCamera(); startFraming(); renderRuns(); }
+      try { await ensureCamera(); startFraming(); renderRuns();
+            autoRow.classList.remove('hidden'); autoHint.classList.remove('hidden'); }
       catch (err) { setupWarn.innerHTML = '<p class="note warn"><strong>No camera.</strong> ' + err.message + '</p>'; }
       return;
     }
