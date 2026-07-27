@@ -183,12 +183,12 @@
 
   <div class="card">
     <h2>How this goes</h2>
-    <div class="stop"><b>Prop your phone up and don't touch it again.</b> Lean it against something, or lay it on the floor pointing up. If you hold it, this cannot work — the camera can't tell your hand shaking from the fan wobbling.</div>
+    <div class="stop"><b>The phone has to sit still and stay put for all four readings.</b> Lay it on the floor pointing up, or lean it on something. Holding it cannot work — to a camera your hand shaking and the fan wobbling are the same thing. Move it between readings and the readings stop comparing.</div>
     <ol class="steps">
-      <li>Point the phone at the fan so the <b>light</b> is in frame.</li>
-      <li><b>Tap the middle of the light on your screen.</b> A circle appears — that is what gets tracked.</li>
+      <li>Turn the fan's <b>light on</b> and point the phone at it. It finds the light by itself — the circle turns teal when it has it. (Tap the screen only if it grabs the wrong thing.)</li>
+      <li>Press <b>Record</b>, then <b>set the phone down and let go.</b> It waits until the phone is completely still before it starts counting, so there is no rush.</li>
       <li>Run the fan at the speed that bothers you, and use that <b>same speed all four times</b>.</li>
-      <li>Take 4 readings: one with nothing added, then one each with a test weight on three different blades.</li>
+      <li>Four readings: one with nothing added, then one each with the test weight on three different blades.</li>
     </ol>
   </div>
 
@@ -238,7 +238,11 @@
       <div class="camwrap" id="camwrap">
         <video id="vid" playsinline muted autoplay></video>
         <canvas id="overlay"></canvas>
-        <div class="tapme" id="tapme">Tap the middle of the light</div>
+        <div class="tapme" id="tapme">Looking for the light…</div>
+      </div>
+      <div id="zoomWrap" class="hidden" style="margin-top:10px">
+        <label class="rlab" for="zoom">Zoom — fill the circle with the light</label>
+        <input id="zoom" type="range" min="1" max="5" step="0.1" value="1" style="width:100%;padding:0">
       </div>
       <div class="meter" id="meter"></div>
       <div class="readout">
@@ -351,7 +355,8 @@ window.addEventListener('error', function (e) {
   // spins and moves only when the whole fan wobbles — exactly the signal we want,
   // and something you can actually aim at. Matt's other app worked the same way
   // (a dot in the middle of the light) and that instruction was clear; mine was not.
-  var vid = $('vid'), overlay = $('overlay'), tapme = $('tapme'), flipBtn = $('flipBtn');
+  var vid = $('vid'), overlay = $('overlay'), tapme = $('tapme'), flipBtn = $('flipBtn'),
+      zoom = $('zoom'), zoomWrap = $('zoomWrap');
   var stream = null, target = null, facing = 'environment';
   var work = document.createElement('canvas'),
       wctx = work.getContext('2d', { willReadFrequently: true });
@@ -363,7 +368,12 @@ window.addEventListener('error', function (e) {
       throw new Error('This browser will not share a camera. Open the page in Safari directly, not inside another app.');
     }
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 960 } },
+      // Ask for as many pixels as the camera will give. The reading is the
+      // light's wander in PIXELS, so resolution is signal: double the pixels
+      // across the light and you double the reading while the noise floor
+      // stays put. The back camera is sharper and higher-resolution than the
+      // front, which is why it is the default.
+      video: { facingMode: { ideal: facing }, width: { ideal: 3840 }, height: { ideal: 2160 } },
       audio: false
     });
     vid.srcObject = stream;
@@ -372,6 +382,20 @@ window.addEventListener('error', function (e) {
     work.height = vid.videoHeight || 960;
     if (!target) target = { x: work.width / 2, y: work.height / 2 };
     flipBtn.classList.remove('hidden');
+    zoomWrap.classList.add('hidden');
+    // Real zoom, when the camera exposes it (most iPhone back cameras do).
+    // Genuine zoom beats cropping: it puts more real pixels on the light.
+    try {
+      var tr = stream.getVideoTracks()[0], cap = tr.getCapabilities && tr.getCapabilities();
+      if (cap && cap.zoom && cap.zoom.max > cap.zoom.min) {
+        zoom.min = cap.zoom.min; zoom.max = Math.min(cap.zoom.max, cap.zoom.min * 6);
+        zoom.step = (cap.zoom.step || 0.1); zoom.value = cap.zoom.min;
+        zoomWrap.classList.remove('hidden');
+        zoom.oninput = function () {
+          tr.applyConstraints({ advanced: [{ zoom: +zoom.value }] }).catch(function () {});
+        };
+      }
+    } catch (e) { /* no zoom control on this camera */ }
   }
 
   // Tap anywhere on the video to put the circle there.
@@ -386,6 +410,32 @@ window.addEventListener('error', function (e) {
     target = { x: x, y: y };
     tapme.textContent = 'Tracking there — tap again to move it';
   });
+
+  // Find the brightest blob in the whole frame and put the circle on it.
+  // Tapping the middle of a light you cannot see — phone face-up on the floor,
+  // back camera pointing at the ceiling — is not a thing anyone can do. The fan
+  // light is reliably the brightest object up there, so we just find it.
+  function autoFindLight() {
+    if (!stream || !work.width) return false;
+    wctx.drawImage(vid, 0, 0, work.width, work.height);
+    var STEP = 8, w = work.width, h = work.height;
+    var d = wctx.getImageData(0, 0, w, h).data;
+    var best = -1, bx = 0, by = 0, x, y;
+    // Coarse scan for the brightest neighbourhood, not the brightest pixel — a
+    // single hot pixel or a specular glint should not win.
+    for (y = STEP; y < h - STEP; y += STEP) {
+      for (x = STEP; x < w - STEP; x += STEP) {
+        var o = (y * w + x) * 4;
+        var L = 0.299 * d[o] + 0.587 * d[o + 1] + 0.114 * d[o + 2];
+        var o2 = ((y + STEP) * w + (x + STEP)) * 4;
+        L += 0.299 * d[o2] + 0.587 * d[o2 + 1] + 0.114 * d[o2 + 2];
+        if (L > best) { best = L; bx = x; by = y; }
+      }
+    }
+    if (best < 120) return false;          // nothing bright enough up there
+    target = { x: bx, y: by };
+    return true;
+  }
 
   // Brightness-weighted centroid inside the circle. null when nothing is bright
   // enough to lock onto.
@@ -434,20 +484,84 @@ window.addEventListener('error', function (e) {
     stopFraming();
     framing = setInterval(function () {
       var p = centroid();
+      if (!p) { if (autoFindLight()) p = centroid(); }   // re-acquire on its own
       drawOverlay(!!p);
-      liveState.textContent = p ? 'locked on' : 'tap the light';
+      if (p) {
+        tapme.textContent = 'Got the light. Prop the phone, then press Record.';
+        liveState.textContent = 'ready';
+      } else {
+        tapme.textContent = 'Can\'t see a light — point at the fan, turn its light on';
+        liveState.textContent = 'searching';
+      }
       paint(p ? 0.2 : 0);
     }, 140);
   }
   function stopFraming() { if (framing) { clearInterval(framing); framing = null; } }
 
+  // Is the PHONE moving? Separate question from "is the fan moving", and the
+  // accelerometer answers it directly. Matt asked for exactly this: don't start
+  // until the phone is actually still and his hand is out of the way.
+  var shake = 0, motionOn = false;
+  function watchPhoneMotion() {
+    if (motionOn) return Promise.resolve();
+    function attach() {
+      motionOn = true;
+      var last = null;
+      window.addEventListener('devicemotion', function (e) {
+        var a = e.accelerationIncludingGravity;
+        if (!a || a.x == null) return;
+        if (last) {
+          var d = Math.abs(a.x - last.x) + Math.abs(a.y - last.y) + Math.abs(a.z - last.z);
+          shake = shake * 0.8 + d * 0.2;
+        }
+        last = { x: a.x, y: a.y, z: a.z };
+      });
+    }
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+      return DeviceMotionEvent.requestPermission()
+        .then(function (r) { if (r === 'granted') attach(); })
+        .catch(function () {});
+    }
+    attach();
+    return Promise.resolve();
+  }
+  var STILL = 0.35;                 // m/s^2 of jitter we treat as "put down"
+  var STILL_HOLD = 1500;            // must stay that quiet this long
+
   function sample(ms) {
     return new Promise(function (resolve, reject) {
       stopFraming();
-      var t0 = Date.now(), xs = [], ys = [], misses = 0, peak = 0.4;
+      var xs = [], ys = [], misses = 0, peak = 0.4;
+      var quietSince = null, started = false, t0 = 0;
       var tick = setInterval(function () {
+
+        // Phase 1 — wait for the phone to be still (skipped if no motion access).
+        if (!started) {
+          var still = !motionOn || shake < STILL;
+          if (still) { if (!quietSince) quietSince = Date.now(); }
+          else { quietSince = null; }
+          var held = quietSince ? Date.now() - quietSince : 0;
+          if (!still) {
+            tapme.textContent = 'Phone is still moving — set it down and let go';
+            liveState.textContent = 'waiting for still';
+          } else {
+            tapme.textContent = 'Holding still…';
+            liveState.textContent = Math.max(0, Math.ceil((STILL_HOLD - held) / 1000)) + 's';
+          }
+          drawOverlay(true);
+          if (held >= STILL_HOLD) { started = true; t0 = Date.now(); }
+          return;
+        }
+
         var el = Date.now() - t0 - LEAD;
-        if (el < 0) { liveState.textContent = 'starting in ' + Math.ceil(-el / 1000) + 's'; drawOverlay(true); return; }
+        if (el < 0) {
+          tapme.textContent = 'Starting…';
+          liveState.textContent = 'starting in ' + Math.ceil(-el / 1000) + 's';
+          drawOverlay(true);
+          return;
+        }
+        tapme.textContent = 'Measuring — do not touch the phone';
         var p = centroid();
         if (!p) misses++;
         else {
@@ -505,6 +619,8 @@ window.addEventListener('error', function (e) {
       return;
     }
     if (!S.armed) { S.armed = true; renderRuns(); return; }
+    await watchPhoneMotion();     // asks once; declined just skips the still-check
+    if (!centroid()) autoFindLight();
 
     S.sampling = true; goBtn.disabled = true; S.armed = false;
     liveVal.textContent = '0.00';
