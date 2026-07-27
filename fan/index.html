@@ -368,7 +368,12 @@ window.addEventListener('error', function (e) {
   var stream = null, target = null, facing = 'environment';
   var work = document.createElement('canvas'),
       wctx = work.getContext('2d', { willReadFrequently: true });
-  var BOX = 190;   // px of video the circle covers
+  // Sized to the LIGHT, never fixed. A box smaller than the light sits entirely
+  // inside a uniformly bright patch, so its centroid is just the box centre and
+  // barely moves — which is exactly how a quarter inch of real wobble measured
+  // as 0.32 px of noise (Matt, 2026-07-26). The blob plus dark margin has to fit
+  // INSIDE the box or there is no signal at all.
+  var BOX = 190;
 
   async function ensureCamera() {
     if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
@@ -441,9 +446,32 @@ window.addEventListener('error', function (e) {
       }
     }
     if (best < 120) return false;          // nothing bright enough up there
-    target = { x: bx, y: by };
+
+    // Now measure how BIG the bright thing is, and size the tracking box around
+    // it with room to move. Without this the box can end up inside the light.
+    var seedO = (by * w + bx) * 4;
+    var seedL = 0.299 * d[seedO] + 0.587 * d[seedO + 1] + 0.114 * d[seedO + 2];
+    var thr = seedL * 0.55;
+    var minX = bx, maxX = bx, minY = by, maxY = by;
+    for (y = 0; y < h; y += 4) {
+      for (x = 0; x < w; x += 4) {
+        var oo = (y * w + x) * 4;
+        var LL = 0.299 * d[oo] + 0.587 * d[oo + 1] + 0.114 * d[oo + 2];
+        if (LL < thr) continue;
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+    var blobW = Math.max(8, maxX - minX), blobH = Math.max(8, maxY - minY);
+    target = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+    // 1.9x the blob leaves dark margin all round, so the centroid can actually
+    // travel. Capped to the frame.
+    BOX = Math.round(Math.min(Math.max(Math.max(blobW, blobH) * 1.9, 120),
+                              Math.min(work.width, work.height) * 0.95));
+    lastBlob = { w: blobW, h: blobH };
     return true;
   }
+  var lastBlob = null;
 
   // Brightness-weighted centroid inside the circle. null when nothing is bright
   // enough to lock onto.
@@ -495,8 +523,11 @@ window.addEventListener('error', function (e) {
       if (!p) { if (autoFindLight()) p = centroid(); }   // re-acquire on its own
       drawOverlay(!!p);
       if (p) {
-        tapme.textContent = 'Got the light. Prop the phone, then press Record.';
-        liveState.textContent = 'ready';
+        var tight = lastBlob && (Math.max(lastBlob.w, lastBlob.h) > BOX * 0.92);
+        tapme.textContent = tight
+          ? 'Light nearly fills the circle — zoom out or move the phone back'
+          : 'Got the light. Prop the phone, then press Record.';
+        liveState.textContent = tight ? 'too close' : 'ready';
       } else {
         tapme.textContent = 'Can\'t see a light — point at the fan, turn its light on';
         liveState.textContent = 'searching';
