@@ -885,6 +885,17 @@ footer {
     border-top: 1px solid var(--color-border);
 }
 
+.footer-aside {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+.footer-aside a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
 /* ---- RESPONSIVE ---- */
 
 @media (max-width: 768px) {
